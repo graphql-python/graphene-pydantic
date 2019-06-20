@@ -1,0 +1,31 @@
+default_language_version:
+    python: python3.7
+fail_fast: true
+repos:
+  - repo: git://github.com/pre-commit/pre-commit-hooks
+    rev: c8bad492e1b1d65d9126dba3fe3bd49a5a52b9d6  # v2.1.0
+    hooks:
+    -   id: check-merge-conflict
+    -   id: check-yaml
+    -   id: debug-statements
+    -   id: end-of-file-fixer
+        exclude: ^docs/.*$
+    -   id: trailing-whitespace
+        exclude: README.md
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.701
+    hooks:
+      - id: mypy
+        language_version: python3.7
+        args: [--ignore-missing-imports, --no-strict-optional]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.0.0
+    hooks:
+      - id: flake8
+        language_version: python3.7
+  - repo: https://github.com/python/black
+    rev: stable
+    hooks:
+      - id: black
+        language_version: python3.7
+
