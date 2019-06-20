@@ -11,8 +11,8 @@ To get your development environment setup, run:
 pip install -e .[dev]
 ```
 
-This will install the repo version of enforcer and then install the development
-dependencies. Once that has completed, you can start developing.
+This will install the repo version of `graphene-pydantic` and then install the
+development dependencies. Once that has completed, you can start developing.
 
 ## Contributor License Agreement
 
