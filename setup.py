@@ -7,10 +7,13 @@ requirements = [
     "pydantic>=0.25,<0.30",
 ]
 
-tests_require = [
-    "pytest==4.6.3",
-    "pytest-cov==2.7.1",
+dev_requirements = [
+    "tox==3.7.0",  # Should be kept in sync with tox.ini
+    "mypy==0.701",
+    "black==19.3b0",
+    "pre-commit==1.14.4",
 ]
+test_requirements = ["pytest==4.6.3", "pytest-cov==2.7.1"]
 
 setup(
     name="graphene-pydantic",
@@ -32,12 +35,6 @@ setup(
     keywords="api graphql protocol rest relay graphene pydantic model",
     packages=find_packages(exclude=["tests"]),
     install_requires=requirements,
-    extras_require={
-        "dev": [
-            "tox==3.7.0",  # Should be kept in sync with tox.ini
-            "pre-commit==1.14.4",
-        ],
-        "test": tests_require,
-    },
-    tests_require=tests_require,
+    extras_require={"dev": dev_requirements, "test": test_requirements},
+    tests_require=test_requirements,
 )
