@@ -33,10 +33,7 @@ def construct_fields(
     """
     fields = {}
     for name, field in model.__fields__.items():
-        converted = convert_pydantic_field(
-            field,
-            registry,
-        )
+        converted = convert_pydantic_field(field, registry)
         registry.register_orm_field(obj_type, name, field)
         fields[name] = converted
     return fields

@@ -23,7 +23,9 @@ class Registry(object):
     def register(self, obj_type):
         assert_is_pydantic_object_type(obj_type)
 
-        assert obj_type._meta.registry == self, "Can't register models linked to another Registry"
+        assert (
+            obj_type._meta.registry == self
+        ), "Can't register models linked to another Registry"
         self._registry[obj_type._meta.model] = obj_type
 
     def get_type_for_model(self, model):
@@ -49,9 +51,7 @@ class Registry(object):
         if not isinstance(py_enum, PyEnum):
             raise TypeError(f"Expected Python Enum, but got: {py_enum!r}")
         if not isinstance(graphene_enum, type(Enum)):
-            raise TypeError(
-                f"Expected Graphene Enum, but got: {graphene_enum!r}"
-            )
+            raise TypeError(f"Expected Graphene Enum, but got: {graphene_enum!r}")
 
         self._registry_enums[py_enum] = graphene_enum
 
