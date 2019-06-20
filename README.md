@@ -1,4 +1,4 @@
-# ![Graphene Logo](http://graphene-python.org/favicon.png) graphene-pydantic [![Build status](https://circleci.com/gh/upsidetravel/graphene-pydantic-2.svg?style=svg)](https://circleci.com/gh/upsidetravel/graphene-pydantic-2) [![PyPI version](https://badge.fury.io/py/graphene-pydantic.svg)](https://badge.fury.io/py/graphene-pydantic) [![Coverage Status](https://coveralls.io/repos/upsidetravel/graphene-pydantic/badge.svg?branch=master&service=github)](https://coveralls.io/github/upsidetravel/graphene-pydantic?branch=master)
+# ![Graphene Logo](http://graphene-python.org/favicon.png) graphene-pydantic [![Build status](https://circleci.com/gh/upsidetravel/graphene-pydantic.svg?style=svg)](https://circleci.com/gh/upsidetravel/graphene-pydantic) [![PyPI version](https://badge.fury.io/py/graphene-pydantic.svg)](https://badge.fury.io/py/graphene-pydantic) [![Coverage Status](https://coveralls.io/repos/upsidetravel/graphene-pydantic/badge.svg?branch=master&service=github)](https://coveralls.io/github/upsidetravel/graphene-pydantic?branch=master)
 
 
 
@@ -65,3 +65,11 @@ result = schema.execute(query)
 ### Full Examples
 
 Please see [the examples directory](./examples) for more. 
+
+### License
+
+This project is under the [Apache License](./LICENSE.md).
+
+### Contributing
+
+Please see the [Contributing Guide](./CONTRIBUTING.md). Note that you must sign the [CLA](./CONTRIBUTOR_LICENSE_AGREEMENT.md).
