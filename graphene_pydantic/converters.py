@@ -158,7 +158,12 @@ def convert_generic_type(type_, field, registry=None):
     elif origin in (T.List, T.Set, T.Collection, T.Iterable, list, set) or issubclass(
         origin, Sequence
     ):
-        return List(to_graphene_type(type_, field, registry))
+        wrapped_types = getattr(type_, "__args__", [])
+        if not wrapped_types:
+            raise ConversionError(
+                f"Don't know how to handle {type_} (generic: {origin})"
+            )
+        return List(to_graphene_type(wrapped_types[0], field, registry))
     else:
         raise ConversionError(f"Don't know how to handle {type_} (generic: {origin})")
 
