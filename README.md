@@ -70,6 +70,10 @@ Please see [the examples directory](./examples) for more.
 
 This project is under the [Apache License](./LICENSE.md).
 
+### Third Party Code
+
+This project depends on third-party code which is subject to the licenses set forth in [Third Party Licenses](./THIRD_PARTY_LICENSES.md).
+
 ### Contributing
 
 Please see the [Contributing Guide](./CONTRIBUTING.md). Note that you must sign the [CLA](./CONTRIBUTOR_LICENSE_AGREEMENT.md).
