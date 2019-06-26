@@ -32,7 +32,16 @@ def construct_fields(
     the future we hope to implement field-level overrides that we'll have to merge in.
     """
     fields = {}
-    for name, field in model.__fields__.items():
+    if only_fields:
+        fields_to_convert = (
+            (k, v) for k, v in model.__fields__.items() if k in only_fields
+        )
+    elif exclude_fields:
+        fields_to_convert = (
+            (k, v) for k, v in model.__fields__.items() if k not in only_fields
+        )
+
+    for name, field in fields_to_convert:
         converted = convert_pydantic_field(field, registry)
         registry.register_orm_field(obj_type, name, field)
         fields[name] = converted
