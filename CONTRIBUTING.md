@@ -33,4 +33,4 @@ this project to learn more.
 
 To sign the CLA, open a pull request as usual. If you haven't signed the CLA
 yet, we cannot merge any pull request until the CLA is signed. You only need to
-sign the CLA once. Please submit a signed CLA via email to [legal@upside.com](mailto:legal@upside.com).
+sign the CLA once.
