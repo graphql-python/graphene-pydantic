@@ -5,16 +5,18 @@ You will need:
 
 ## Getting started
 
-To get your development environment setup, run:
+To get your development environment set up, run:
 
 ```sh
 pip install -e .[dev]
 ```
 
-This will install the repo version of `graphene-pydantic` and then install the
-development dependencies. Once that has completed, you can start developing.
+in an activated virtual environment. This will install the repo version of
+`graphene-pydantic` and then install the development dependencies. Once that
+has completed, you can start developing.
 
 ## Contributor License Agreement
+
 
 We require all contributors to sign the [Upside CLA](./CONTRIBUTOR_LICENSE_AGREEMENT.md).
 
@@ -30,5 +32,5 @@ businesses, republish modified source, and more. Please reference the license of
 this project to learn more.
 
 To sign the CLA, open a pull request as usual. If you haven't signed the CLA
-yet. We cannot merge any pull request until the CLA is signed. You only need to
+yet, we cannot merge any pull request until the CLA is signed. You only need to
 sign the CLA once.

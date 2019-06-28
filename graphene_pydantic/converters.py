@@ -1,3 +1,5 @@
+from collections import OrderedDict
+from collections.abc import Mapping, Sequence
 import typing as T
 import uuid
 import datetime
@@ -149,10 +151,19 @@ def convert_generic_type(type_, field, registry=None):
     # Python functions like `isinstance()` don't work
     if origin == T.Union:
         return convert_union_type(type_, field, registry)
-    elif origin in (T.Dict, T.OrderedDict, T.Mapping):
+    elif origin in (T.Dict, T.OrderedDict, T.Mapping, dict, OrderedDict) or issubclass(
+        origin, Mapping
+    ):
         raise ConversionError("Don't know how to handle mappings in Graphene")
-    elif origin in (T.List, T.Set, T.Collection, T.Iterable):
-        return List(to_graphene_type(type_, field, registry))
+    elif origin in (T.List, T.Set, T.Collection, T.Iterable, list, set) or issubclass(
+        origin, Sequence
+    ):
+        wrapped_types = getattr(type_, "__args__", [])
+        if not wrapped_types:
+            raise ConversionError(
+                f"Don't know how to handle {type_} (generic: {origin})"
+            )
+        return List(to_graphene_type(wrapped_types[0], field, registry))
     else:
         raise ConversionError(f"Don't know how to handle {type_} (generic: {origin})")
 

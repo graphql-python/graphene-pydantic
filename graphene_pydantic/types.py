@@ -31,8 +31,18 @@ def construct_fields(
     Currently simply fetches all the attributes from the Pydantic model's __fields__. In
     the future we hope to implement field-level overrides that we'll have to merge in.
     """
+    excluded: typing.Tuple[str, ...] = ()
+    if exclude_fields:
+        excluded = exclude_fields
+    elif only_fields:
+        excluded = tuple(k for k in model.__fields__ if k not in only_fields)
+
+    fields_to_convert = (
+        (k, v) for k, v in model.__fields__.items() if k not in excluded
+    )
+
     fields = {}
-    for name, field in model.__fields__.items():
+    for name, field in fields_to_convert:
         converted = convert_pydantic_field(field, registry)
         registry.register_orm_field(obj_type, name, field)
         fields[name] = converted
