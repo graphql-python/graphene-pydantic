@@ -54,7 +54,7 @@ workflows:
       - build
 
   # The deployment workflow publishes the package, and is only run on a Git tag matching a
-  # version regex
+  # version regex being merged to master
   deployment-workflow:
     jobs:
       - build:
@@ -62,7 +62,7 @@ workflows:
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
             branches:
-              ignore: /.*/
+              only: master
 
       - deployment:
           requires:
@@ -71,4 +71,4 @@ workflows:
               tags:
                 only: /v[0-9]+(\.[0-9]+)*/
               branches:
-                ignore: /.*/
+                only: master
