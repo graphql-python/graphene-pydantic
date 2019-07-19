@@ -25,12 +25,12 @@ graphene = ">=2.1.3,<3"
 pydantic = ">=0.25,<0.30"
 
 [tool.poetry.dev-dependencies]
-pytest = "~4.6.3"
+pytest = "~4.6.4"
 pytest-cov = "~2.7.1"
-tox = "3.7.0"  # sync with tox.ini
+tox = "~3.12.0"  # sync with tox.ini
 mypy = "0.720"
 black = "19.3b0"
-pre-commit = "1.14.4"
+pre-commit = "~1.17.0"
 
 [build-system]
 requires = ["poetry>=0.12"]
