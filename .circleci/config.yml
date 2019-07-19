@@ -1,8 +1,74 @@
+# with thanks to https://dev.to/jonatasbaldin/a-recipe-for-poetry-and-circleci-1bj6
 version: 2.1
 jobs:
+  # Building and testing the project
+  # Useful when a PR is open, for example
   build:
     docker:
-      - image: themattrix/tox
+      - image: circleci/python:3.7.3  # includes `poetry`!
     steps:
       - checkout
-      - run: tox
+
+      # Cache can be tricky at first, but this means restore the cache if the text key
+      # `deps-{{ checksum "poetry.lock" }}` changes (and it WILL change every time poetry.lock
+      # is updated since we rely on its checksum) and poetry.lock is updated every time we add
+      # a new dependency to our project
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "poetry.lock" }}
+
+      - run:
+          name: install dependencies
+          command: |
+            poetry install
+
+      - run:
+          name: Run all the testing steps
+          command: |
+            poetry run tox
+
+      # Save the specified path as a cache. This is the path Poetry uses to install the dependencies
+      # So if you don't install anything new, this folder won't change and the cache will be effective
+      - save_cache:
+          key: deps-{{ checksum "poetry.lock" }}
+          paths:
+            - /home/circleci/.cache/pypoetry/virtualenvs
+            - /home/circleci/project/.tox
+
+  deployment:
+    docker:
+      - image: circleci/python:3.7.3
+    steps:
+        - checkout
+        - run:
+            name: publish to PyPI
+            command: |
+              poetry publish --build --username "${PYPI_USERNAME}" --password "${PYPI_PASSWORD}" --no-interaction
+
+# When to run which job
+workflows:
+  version: 2.1
+
+  build-workflow:
+    jobs:
+      - build
+
+  # The deployment workflow publishes the package, and is only run on a Git tag matching a
+  # version regex
+  deployment-workflow:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*/
+            branches:
+              ignore: /.*/
+
+      - deployment:
+          requires:
+            - build
+          filters:
+              tags:
+                only: /v[0-9]+(\.[0-9]+)*/
+              branches:
+                ignore: /.*/
