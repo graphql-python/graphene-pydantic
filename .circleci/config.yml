@@ -45,14 +45,14 @@ jobs:
             command: |
               poetry publish --build --username "${PYPI_USERNAME}" --password "${PYPI_PASSWORD}" --no-interaction
 
-  tag_describes_master:
+  tag_is_on_master:
     docker:
       - image: circleci/python:3.7.3  # includes `poetry`!
     steps:
       - run:
-          name: Check that the tag being built is at the tip of master
+          name: Check that the tag being built is on master
           command: |
-            [ "$(git describe master)" = "$CIRCLE_TAG" ]
+            [ "$CIRCLE_BRANCH" = "master" ] && [ "" != "$CIRCLE_TAG" ]
 
 # When to run which job
 workflows:
@@ -73,7 +73,7 @@ workflows:
             branches:
               ignore: /.*/
 
-      - tag_describes_master:
+      - tag_is_on_master:
           filters:
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
