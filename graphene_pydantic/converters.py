@@ -166,13 +166,9 @@ def convert_generic_python_type(
         # first of the wrapped types
         inner_type = inner_types[0]
         return List(find_graphene_type(inner_type, field, registry))
-    elif origin in (
-        T.Dict,
-        T.OrderedDict,
-        T.Mapping,
-        collections.OrderedDict,
-        dict,
-    ) or issubclass(origin, abc.Mapping):
+    elif origin in (T.Dict, T.Mapping, collections.OrderedDict, dict) or issubclass(
+        origin, abc.Mapping
+    ):
         raise ConversionError("Don't know how to handle mappings in Graphene")
     else:
         raise ConversionError(f"Don't know how to handle {type_} (generic: {origin})")
