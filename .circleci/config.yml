@@ -47,12 +47,12 @@ jobs:
 
   tag_is_on_master:
    docker:
-      - image: alpine:3.10
+      - image: alpine/git:1.0.7
    steps:
       - run:
           name: Check that the tag being built is on master
           command: |
-            [ "$CIRCLE_BRANCH" = "master" ] && [ "" != "$CIRCLE_TAG" ]
+            [ "" != "$CIRCLE_TAG" ] && (git branch --contains "$CIRCLE_TAG" | grep -c master)
 
 # When to run which job
 workflows:
