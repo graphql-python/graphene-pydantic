@@ -49,6 +49,7 @@ jobs:
    docker:
       - image: alpine/git:1.0.7
    steps:
+      - checkout
       - run:
           name: Check that the tag being built is on master
           command: |
