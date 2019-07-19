@@ -1,14 +1,17 @@
 import typing as T
 import uuid
+import enum
 import datetime
+import decimal
 
 import pytest
 import graphene
-from pydantic import create_model
+import graphene.types
+from pydantic import create_model, BaseModel
 
-# from graphene_pydantic.types import PydanticObjectType
-from graphene_pydantic.converters import convert_pydantic_field
+from graphene_pydantic.converters import convert_pydantic_field, ConversionError
 from graphene_pydantic.registry import get_global_registry
+from graphene_pydantic import converters
 
 
 def _get_field_from_spec(name, type_spec_or_default):
@@ -51,6 +54,7 @@ def test_default_values():
         ((str, "hi"), graphene.String),
         ((uuid.UUID, uuid.uuid4()), graphene.UUID),
         ((datetime.date, datetime.date(2019, 1, 1)), graphene.Date),
+        ((datetime.time, datetime.time(15, 29)), graphene.Time),
         ((datetime.datetime, datetime.datetime(2019, 1, 1, 1, 37)), graphene.DateTime),
     ],
 )
@@ -61,22 +65,81 @@ def test_builtin_scalars(input, expected):
     assert field.default_value == input[1]
 
 
-@pytest.mark.parametrize(
-    "input, expected",
-    [
-        ((T.List[int], [1, 2]), graphene.List),
-        # ((a, b), graphene.Enum),
-        # ((a, b), graphene.Dynamic),
-    ],
-)
-def test_builtin_composites(input, expected):
-    field = _convert_field_from_spec("attr", input)
-    assert isinstance(field, graphene.Field)
-    assert isinstance(field.type, expected)
-    assert field.default_value == input[1]
-
-
 def test_union():
     field = _convert_field_from_spec("attr", (T.Union[int, float, str], 5.0))
     assert issubclass(field.type, graphene.Union)
     assert field.default_value == 5.0
+    assert field.type.__name__.startswith("UnionOf")
+
+
+def test_mapping():
+    with pytest.raises(ConversionError) as exc:
+        _convert_field_from_spec("attr", (T.Dict[str, int], {"foo": 5}))
+    assert exc.value.args[0] == "Don't know how to handle mappings in Graphene."
+
+
+def test_decimal(monkeypatch):
+    monkeypatch.setattr(converters, "DECIMAL_SUPPORTED", True)
+    field = _convert_field_from_spec("attr", (decimal.Decimal, decimal.Decimal(1.25)))
+    assert field.type.__name__ == "Decimal"
+
+    monkeypatch.setattr(converters, "DECIMAL_SUPPORTED", False)
+    field = _convert_field_from_spec("attr", (decimal.Decimal, decimal.Decimal(1.25)))
+    assert field.type.__name__ == "Float"
+
+
+def test_iterables():
+    field = _convert_field_from_spec("attr", (T.List[int], [1, 2]))
+    assert isinstance(field.type, graphene.types.List)
+
+    field = _convert_field_from_spec("attr", (list, [1, 2]))
+    assert field.type == graphene.types.List
+
+    field = _convert_field_from_spec("attr", (T.Set[int], {1, 2}))
+    assert isinstance(field.type, graphene.types.List)
+
+    field = _convert_field_from_spec("attr", (set, {1, 2}))
+    assert field.type == graphene.types.List
+
+    field = _convert_field_from_spec("attr", (T.Tuple[int, float], (1, 2.2)))
+    assert isinstance(field.type, graphene.types.List)
+
+    field = _convert_field_from_spec("attr", (T.Tuple[int, ...], (1, 2.2)))
+    assert isinstance(field.type, graphene.types.List)
+
+    field = _convert_field_from_spec("attr", (tuple, (1, 2)))
+    assert field.type == graphene.types.List
+
+    field = _convert_field_from_spec("attr", (T.Union[None, int], 1))
+    assert field.type == graphene.types.Int
+
+
+def test_enum():
+    class Color(enum.Enum):
+        RED = 1
+        GREEN = 2
+
+    field = _convert_field_from_spec("attr", (Color, Color.RED))
+    assert field.type.__name__ == "Color"
+    assert field.type._meta.enum == Color
+
+
+def test_existing_model():
+    from graphene_pydantic import PydanticObjectType
+
+    class Foo(BaseModel):
+        name: str
+
+    class GraphFoo(PydanticObjectType):
+        class Meta:
+            model = Foo
+
+    field = _convert_field_from_spec("attr", (Foo, Foo(name="bar")))
+    assert field.type == GraphFoo
+
+
+def test_unknown():
+    with pytest.raises(ConversionError) as exc:
+        _convert_field_from_spec("attr", (create_model("Model", size=int), None))
+    assert "Don't know how to convert" in exc.value.args[0]
+    assert "Field(attr type=Model default=None)" in exc.value.args[0]

@@ -113,6 +113,7 @@ if __name__ == "__main__":
               id
               name
               hiredOn
+              salary { rating }
             }
             ...on Manager {
               name
