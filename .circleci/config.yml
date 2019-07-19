@@ -46,9 +46,9 @@ jobs:
               poetry publish --build --username "${PYPI_USERNAME}" --password "${PYPI_PASSWORD}" --no-interaction
 
   tag_is_on_master:
-    docker:
-      - image: circleci/python:3.7.3  # includes `poetry`!
-    steps:
+   docker:
+      - image: alpine:3.10
+   steps:
       - run:
           name: Check that the tag being built is on master
           command: |
