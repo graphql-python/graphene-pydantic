@@ -53,7 +53,7 @@ jobs:
       - run:
           name: Check that the tag being built is on master
           command: |
-            [ "" != "$CIRCLE_TAG" ] && (git branch --contains "$CIRCLE_TAG" | grep -c master)
+            [ "" != "$CIRCLE_TAG" ] && (git branch -a --contains "$CIRCLE_TAG" | grep -c "remotes/origin/master")
 
 # When to run which job
 workflows:
