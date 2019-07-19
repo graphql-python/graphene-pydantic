@@ -45,6 +45,15 @@ jobs:
             command: |
               poetry publish --build --username "${PYPI_USERNAME}" --password "${PYPI_PASSWORD}" --no-interaction
 
+  tag_describes_master:
+    docker:
+      - image: circleci/python:3.7.3  # includes `poetry`!
+    steps:
+      - run:
+          name: Check that the tag being built is at the tip of master
+          command: |
+            [ "$(git describe master)" = "$CIRCLE_TAG" ]
+
 # When to run which job
 workflows:
   version: 2.1
@@ -54,7 +63,7 @@ workflows:
       - build
 
   # The deployment workflow publishes the package, and is only run on a Git tag matching a
-  # version regex being merged to master
+  # version regex that exists on master
   deployment-workflow:
     jobs:
       - build:
@@ -62,13 +71,14 @@ workflows:
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
             branches:
-              only: master
+              ignore: /.*/
 
       - deployment:
           requires:
             - build
+            - tag_describes_master
           filters:
               tags:
                 only: /v[0-9]+(\.[0-9]+)*/
               branches:
-                only: master
+                ignore: /.*/
