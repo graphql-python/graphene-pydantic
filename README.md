@@ -77,3 +77,32 @@ This project depends on third-party code which is subject to the licenses set fo
 ### Contributing
 
 Please see the [Contributing Guide](./CONTRIBUTING.md). Note that you must sign the [CLA](./CONTRIBUTOR_LICENSE_AGREEMENT.md).
+
+### Caveats
+
+Note that even though Pydantic is perfectly happy with fields that hold mappings (e.g. dictionaries), because [GraphQL's type system doesn't have them](https://graphql.org/learn/schema/) those fields can't be exported to Graphene types. For instance, this will fail with an error `Don't know how to handle mappings in Graphene`: 
+
+``` python
+import typing
+from graphene_pydantic import PydanticObjectType
+
+class Pet:
+  pass
+
+class Person:
+  name: str
+  pets_by_name: typing.Dict[str, Pet]
+  
+class GraphQLPerson(PydanticObjectType):  
+  class Meta:
+    model = Person
+```
+
+However, note that if you use `exclude_fields` or `only_fields` to exclude those values, there won't be a problem:
+
+``` python
+class GraphQLPerson(PydanticObjectType):
+  class Meta:
+    model = Person
+    exclude_fields = ("pets_by_name",)
+```
