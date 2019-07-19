@@ -68,6 +68,8 @@ workflows:
   deployment-workflow:
     jobs:
       - build:
+          requires:
+            - tag_is_on_master
           filters:
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
