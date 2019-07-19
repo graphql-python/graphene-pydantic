@@ -39,7 +39,7 @@ class Person(PydanticObjectType):
         exclude_fields = ("id",)
 
 class Query(graphene.ObjectType):
-    people = graphene.List(User)
+    people = graphene.List(Person)
 
     def resolve_people(self, info):
         return get_people()  # function returning `PersonModel`s
