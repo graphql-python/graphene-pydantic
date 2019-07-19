@@ -1,4 +1,4 @@
-import typing
+import typing as T
 
 import pydantic
 
@@ -14,24 +14,25 @@ class PydanticObjectTypeOptions(ObjectTypeOptions):
     # TODO:
     # It's not clear what purpose this serves within Graphene, or whether
     # it'd be meaningful to construct this from the pydantic.Config associated
-    # with a given model
+    # with a given model, so skipping it for now.
     pass
 
 
 def construct_fields(
-    obj_type: "PydanticObjectType",
-    model: pydantic.BaseModel,
+    obj_type: T.Type["PydanticObjectType"],
+    model: T.Type[pydantic.BaseModel],
     registry: Registry,
-    only_fields: typing.Tuple[str],
-    exclude_fields: typing.Tuple[str],
-) -> typing.Dict[str, graphene.Field]:
+    only_fields: T.Tuple[str, ...],
+    exclude_fields: T.Tuple[str, ...],
+) -> T.Dict[str, graphene.Field]:
     """
     Construct all the fields for a PydanticObjectType.
 
-    Currently simply fetches all the attributes from the Pydantic model's __fields__. In
-    the future we hope to implement field-level overrides that we'll have to merge in.
+    NOTE: Currently simply fetches all the attributes from the Pydantic model
+    `__fields__`. In the future we hope to implement field-level overrides that
+    we'll have to merge in.
     """
-    excluded: typing.Tuple[str, ...] = ()
+    excluded: T.Tuple[str, ...] = ()
     if exclude_fields:
         excluded = exclude_fields
     elif only_fields:
@@ -44,43 +45,45 @@ def construct_fields(
     fields = {}
     for name, field in fields_to_convert:
         converted = convert_pydantic_field(field, registry)
-        registry.register_orm_field(obj_type, name, field)
+        registry.register_object_field(obj_type, name, field)
         fields[name] = converted
     return fields
 
 
-# TODO: implement an OverrideField
+# TODO: implement an OverrideField of some kind
 
 
 class PydanticObjectType(graphene.ObjectType):
+    """Graphene ObjectType that knows how to map itself to a Pydantic model defined in its nested `Meta` class."""
+
     @classmethod
     def __init_subclass_with_meta__(
         cls,
-        model=None,
-        registry=None,
-        skip_registry=False,
-        only_fields=(),
-        exclude_fields=(),
+        model: type = None,
+        registry: Registry = None,
+        skip_registry: bool = False,
+        only_fields: T.Tuple[str, ...] = (),
+        exclude_fields: T.Tuple[str, ...] = (),
         interfaces=(),
         id=None,
         _meta=None,
         **options,
     ):
-        assert issubclass(
+        assert model and issubclass(
             model, pydantic.BaseModel
         ), f'You need to pass a valid Pydantic model in {cls.__name__}.Meta, received "{model}"'
 
-        if not registry:
-            registry = get_global_registry()
-
         assert isinstance(
-            registry, Registry
+            registry, (Registry, None.__class__)
         ), f'The attribute registry in {cls.__name__} needs to be an instance of Registry, received "{registry}".'
 
         if only_fields and exclude_fields:
             raise ValueError(
                 "The options 'only_fields' and 'exclude_fields' cannot be both set on the same type."
             )
+
+        if not registry:
+            registry = get_global_registry()
 
         pydantic_fields = yank_fields_from_attrs(
             construct_fields(

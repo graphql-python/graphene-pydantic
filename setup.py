@@ -9,7 +9,7 @@ requirements = [
 
 dev_requirements = [
     "tox==3.7.0",  # Should be kept in sync with tox.ini
-    "mypy==0.701",
+    "mypy==0.720",
     "black==19.3b0",
     "pre-commit==1.14.4",
 ]
