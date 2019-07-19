@@ -3,10 +3,9 @@ version: 2.1
 jobs:
   # Building and testing the project
   # Useful when a PR is open, for example
-  build-and-test:
+  build:
     docker:
       - image: circleci/python:3.7.3  # includes `poetry`!
-    # The steps for our build-and-test
     steps:
       - checkout
 
@@ -50,15 +49,15 @@ jobs:
 workflows:
   version: 2.1
 
-  build-and-test-workflow:
+  build-workflow:
     jobs:
-      - build-and-test
+      - build
 
   # The deployment workflow publishes the package, and is only run on a Git tag matching a
   # version regex
   deployment-workflow:
     jobs:
-      - build-and-test:
+      - build:
           filters:
             tags:
               only: /v[0-9]+(\.[0-9]+)*/
@@ -67,7 +66,7 @@ workflows:
 
       - deployment:
           requires:
-            - build-and-test
+            - build
           filters:
               tags:
                 only: /v[0-9]+(\.[0-9]+)*/
