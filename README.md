@@ -66,22 +66,26 @@ result = schema.execute(query)
 `graphene_pydantic` supports forward declarations and circular references, but you will need to call the `resolve_placeholders()` method to ensure the types are fully updated before you execute a GraphQL query. For instance:
 
 ``` python
-class FooModel(BaseModel):
-  bar: 'BarModel'
-  
-class BarModel(BaseModel):
-  foo: FooModel
-  
-class Foo(PydanticObjectType):
-  class Meta:
-    model = FooModel
+class NodeModel(BaseModel):
+    id: int
+    name: str
+    labels: 'LabelsModel'
+    
+class LabelsModel(BaseModel):
+    node: NodeModel
+    labels: typing.List[str]
+    
+class Node(PydanticObjectType):
+    class Meta:
+        model = NodeModel
+        
+class Labels(PydanticObjectType):
+    class Meta:
+        model = LabelsModel
+        
 
-class Bar(PydanticObjectType):
-  class Meta:
-    model = BarModel
-
-Foo.resolve_placeholders()  # <-- this line ensures it's resolvable in GraphQL
-Bar.resolve_placeholders()
+Node.resolve_placeholders()  # make the `labels` field work
+Labels.resolve_placeholders()  # make the `node` field work
 ```
 
 ### Full Examples
