@@ -16,6 +16,14 @@ def assert_is_pydantic_object_type(obj_type: T.Type["PydanticObjectType"]):
         raise TypeError(f"Expected PydanticObjectType, but got: {obj_type!r}")
 
 
+class Placeholder:
+    def __init__(self, model: T.Type[BaseModel]):
+        self.model = model
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.model})"
+
+
 class Registry:
     """Hold information about Pydantic models and how they (and their fields) map to Graphene types."""
 
@@ -35,8 +43,17 @@ class Registry:
     def get_type_for_model(self, model: T.Type[BaseModel]) -> "PydanticObjectType":
         return self._registry.get(model)
 
+    def add_placeholder_for_model(self, model: T.Type[BaseModel]):
+        if model in self._registry:
+            return
+        self._registry[model] = Placeholder(model)
+
     def register_object_field(
-        self, obj_type: T.Type["PydanticObjectType"], field_name: str, obj_field: Field
+        self,
+        obj_type: T.Type["PydanticObjectType"],
+        field_name: str,
+        obj_field: Field,
+        model: T.Type[BaseModel] = None,
     ):
         assert_is_pydantic_object_type(obj_type)
 
