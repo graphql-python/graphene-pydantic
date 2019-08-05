@@ -6,7 +6,7 @@ import graphene
 from graphene.types.objecttype import ObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
-from .registry import get_global_registry, Registry
+from .registry import get_global_registry, Registry, Placeholder
 from .converters import convert_pydantic_field
 
 
@@ -44,8 +44,10 @@ def construct_fields(
 
     fields = {}
     for name, field in fields_to_convert:
-        converted = convert_pydantic_field(field, registry)
-        registry.register_object_field(obj_type, name, field)
+        converted = convert_pydantic_field(
+            field, registry, parent_type=obj_type, model=model
+        )
+        registry.register_object_field(obj_type, name, field, model=model)
         fields[name] = converted
     return fields
 
@@ -123,3 +125,32 @@ class PydanticObjectType(graphene.ObjectType):
 
         if not skip_registry:
             registry.register(cls)
+
+    @classmethod
+    def resolve_placeholders(cls):
+        """
+        If this class has any placeholders in the registry (e.g. classes that
+        weren't resolvable when the class was created, perhaps due to the
+        PydanticObjectType wrapper not existing yet), resolve them as far as
+        possible.
+        """
+        meta = cls._meta
+        fields_to_update = {}
+        for name, field in meta.fields.items():
+            target_type = field._type
+            if hasattr(target_type, "_of_type"):
+                target_type = target_type._of_type
+            if isinstance(target_type, Placeholder):
+                pydantic_field = meta.model.__fields__[name]
+                graphene_field = convert_pydantic_field(
+                    pydantic_field,
+                    meta.registry,
+                    parent_type=cls,
+                    model=target_type.model,
+                )
+                fields_to_update[name] = graphene_field
+                meta.registry.register_object_field(
+                    cls, name, pydantic_field, model=target_type.model
+                )
+        # update the graphene side of things
+        meta.fields.update(fields_to_update)

@@ -61,6 +61,28 @@ query = '''
 result = schema.execute(query)
 ```
 
+### Forward declarations and circular references
+
+`graphene_pydantic` supports forward declarations and circular references, but you will need to call the `resolve_placeholders()` method to ensure the types are fully updated before you execute a GraphQL query. For instance:
+
+``` python
+class FooModel(BaseModel):
+  bar: 'BarModel'
+  
+class BarModel(BaseModel):
+  foo: FooModel
+  
+class Foo(PydanticObjectType):
+  class Meta:
+    model = FooModel
+
+class Bar(PydanticObjectType):
+  class Meta:
+    model = BarModel
+
+Foo.resolve_placeholders()  # <-- this line ensures it's resolvable in GraphQL
+Bar.resolve_placeholders()
+```
 
 ### Full Examples
 
