@@ -157,7 +157,8 @@ def find_graphene_type(
             raise ConversionError(
                 "Don't know how to convert the Pydantic field "
                 f"{field!r} ({field.type_}), could not resolve "
-                "the forward reference."
+                "the forward reference. Did you call `resolve_placeholders()`? "
+                "See the README for more on forward references."
             )
         module_ns = sys.modules[sibling.__module__].__dict__
         resolved = type_._evaluate(module_ns, None)
