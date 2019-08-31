@@ -32,6 +32,10 @@ class ManagerModel(EmployeeModel):
 class DepartmentModel(pydantic.BaseModel):
     id: uuid.UUID
     name: str
+    # This will not work properly in Python 3.6. Since
+    # ManagerModel is a subclass of EmployeeModel, 3.6's
+    # typing implementation throws away the ManagerModel
+    # annotation.
     employees: T.List[T.Union[ManagerModel, EmployeeModel]]
 
 
