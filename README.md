@@ -189,7 +189,7 @@ field Department.employees ..."`
 
 Looking at the `employees` field above, if you write the type annotation with Employee first,
 `employees: T.List[T.Union[EmployeeModel, ManagerModel]]`, you will not be able to query
-manager-related fields (in this case `title`). In a query containing a spread like this, :
+manager-related fields (in this case `title`). In a query containing a spread like this:
 
 ```
 ...on Employee {
