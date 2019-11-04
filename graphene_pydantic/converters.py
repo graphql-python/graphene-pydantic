@@ -240,22 +240,20 @@ def convert_union_type(
     Convert an annotated Python Union type into a Graphene Union.
     """
     inner_types = type_.__args__
-    if len(inner_types) == 2 and NONE_TYPE in inner_types:
-        # This is effectively a typing.Optional[T], which decomposes into a
-        # typing.Union[None, T] -- we can return the Graphene type for T directly
-        # since Pydantic will have already parsed it as optional
-        native_type = next(x for x in inner_types if x != NONE_TYPE)  # noqa: E721
-        graphene_type = find_graphene_type(
-            native_type, field, registry, parent_type=parent_type, model=model
-        )
-        return graphene_type
-
-    # Otherwise, we use a little metaprogramming -- create our own unique
+    # We use a little metaprogramming -- create our own unique
     # subclass of graphene.Union that knows its constituent Graphene types
     parent_types = tuple(
         find_graphene_type(x, field, registry, parent_type=parent_type, model=model)
         for x in inner_types
+        if x != NONE_TYPE
     )
+
+    # This is effectively a typing.Optional[T], which decomposes into a
+    # typing.Union[None, T] -- we can return the Graphene type for T directly
+    # since Pydantic will have already parsed it as optional
+    if len(parent_types) == 1:
+        return parent_types[0]
+
     internal_meta_cls = type("Meta", (), {"types": parent_types})
 
     union_cls = type(
