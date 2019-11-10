@@ -7,7 +7,36 @@ import datetime
 import decimal
 import enum
 
-from pydantic import BaseModel, fields
+from pydantic import BaseModel
+from pydantic.fields import Field as PydanticField
+
+try:
+    # Pydantic pre-1.0
+    from pydantic.fields import Shape
+
+    SHAPE_SINGLETON = (Shape.SINGLETON,)
+    SHAPE_SEQUENTIAL = (
+        Shape.LIST,
+        Shape.TUPLE,
+        Shape.TUPLE_ELLIPS,
+        Shape.SEQUENCE,
+        Shape.SET,
+    )
+    SHAPE_MAPPING = (Shape.MAPPING,)
+except ImportError:
+    # Pydantic 1.0+
+    from pydantic import fields
+
+    SHAPE_SINGLETON = (fields.SHAPE_SINGLETON,)
+    SHAPE_SEQUENTIAL = (
+        fields.SHAPE_LIST,
+        fields.SHAPE_TUPLE,
+        fields.SHAPE_TUPLE_ELLIPSIS,
+        fields.SHAPE_SEQUENCE,
+        fields.SHAPE_SET,
+    )
+    SHAPE_MAPPING = (fields.SHAPE_MAPPING,)
+
 
 from graphene import Field, Boolean, Enum, Float, Int, List, String, UUID, Union
 from graphene.types.base import BaseType
@@ -45,7 +74,7 @@ def get_attr_resolver(attr_name: str) -> T.Callable:
 
 
 def convert_pydantic_field(
-    field: fields.Field,
+    field: PydanticField,
     registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
@@ -75,7 +104,7 @@ def convert_pydantic_field(
 
 def convert_pydantic_type(
     type_: T.Type,
-    field: fields.Field,
+    field: PydanticField,
     registry: Registry = None,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
@@ -88,24 +117,18 @@ def convert_pydantic_type(
     graphene_type = find_graphene_type(
         type_, field, registry, parent_type=parent_type, model=model
     )
-    if field.shape == fields.Shape.SINGLETON:
+    if field.shape in SHAPE_SINGLETON:
         return graphene_type
-    elif field.shape in (
-        fields.Shape.LIST,
-        fields.Shape.TUPLE,
-        fields.Shape.TUPLE_ELLIPS,
-        fields.Shape.SEQUENCE,
-        fields.Shape.SET,
-    ):
+    elif field.shape in SHAPE_SEQUENTIAL:
         # TODO: _should_ Sets remain here?
         return List(graphene_type)
-    elif field.shape == fields.Shape.MAPPING:
+    elif field.shape in SHAPE_MAPPING:
         raise ConversionError(f"Don't know how to handle mappings in Graphene.")
 
 
 def find_graphene_type(
     type_: T.Type,
-    field: fields.Field,
+    field: PydanticField,
     registry: Registry = None,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
@@ -178,7 +201,7 @@ def find_graphene_type(
 
 def convert_generic_python_type(
     type_: T.Type,
-    field: fields.Field,
+    field: PydanticField,
     registry: Registry = None,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
@@ -231,7 +254,7 @@ def convert_generic_python_type(
 
 def convert_union_type(
     type_: T.Type,
-    field: fields.Field,
+    field: PydanticField,
     registry: Registry = None,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,

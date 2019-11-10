@@ -7,6 +7,7 @@ import decimal
 import pytest
 import graphene
 import graphene.types
+import pydantic
 from pydantic import create_model, BaseModel
 
 from graphene_pydantic.converters import convert_pydantic_field, ConversionError
@@ -142,4 +143,11 @@ def test_unknown():
     with pytest.raises(ConversionError) as exc:
         _convert_field_from_spec("attr", (create_model("Model", size=int), None))
     assert "Don't know how to convert" in exc.value.args[0]
-    assert "Field(attr type=Model default=None)" in exc.value.args[0]
+    if pydantic.version.VERSION < pydantic.version.StrictVersion("1.0"):
+        assert "Field(attr type=Model default=None)" in exc.value.args[0]
+    else:
+        # this worked at least as of 1.1
+        assert (
+            "ModelField(name='attr', type=Optional[Model], required=False, default=None)"
+            in exc.value.args[0]
+        )
