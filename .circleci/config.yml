@@ -5,7 +5,7 @@ jobs:
   # Useful when a PR is open, for example
   build:
     docker:
-      - image: circleci/python:3.7.3  # includes `poetry`!
+      - image: circleci/python:3.7.7  # includes `poetry`!
     steps:
       - checkout
 
