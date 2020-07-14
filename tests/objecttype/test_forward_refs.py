@@ -1,8 +1,8 @@
 import typing as T
 import uuid
 
-import pydantic
 import graphene
+import pydantic
 
 from graphene_pydantic import PydanticObjectType
 

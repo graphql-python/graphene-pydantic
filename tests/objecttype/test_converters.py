@@ -1,18 +1,21 @@
-import typing as T
-import uuid
-import enum
 import datetime
 import decimal
+import enum
+import typing as T
+import uuid
 
-import pytest
 import graphene
 import graphene.types
 import pydantic
-from pydantic import create_model, BaseModel
+import pytest
+from pydantic import BaseModel, create_model
 
-from graphene_pydantic.converters import convert_pydantic_field, ConversionError
-from graphene_pydantic.registry import get_global_registry
-from graphene_pydantic import converters
+import graphene_pydantic.objecttype.converters as converters
+from graphene_pydantic.objecttype.converters import (
+    ConversionError,
+    convert_pydantic_field,
+)
+from graphene_pydantic.objecttype.registry import get_global_registry
 
 
 def _get_field_from_spec(name, type_spec_or_default):

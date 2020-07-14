@@ -3,7 +3,7 @@ import typing as T
 import pytest
 from pydantic import BaseModel
 
-from graphene_pydantic.types import PydanticObjectType
+from graphene_pydantic.objecttype.types import PydanticObjectType
 
 
 def test_object_type_onlyfields():

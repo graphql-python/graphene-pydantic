@@ -1,14 +1,20 @@
-import sys
 import collections
 import collections.abc
-import typing as T
-import uuid
 import datetime
 import decimal
 import enum
+import sys
+import typing as T
+import uuid
 
+from graphene import UUID, Boolean, Enum, Field, Float, Int, List, String, Union
+from graphene.types.base import BaseType
+from graphene.types.datetime import Date, DateTime, Time
 from pydantic import BaseModel
 from pydantic.fields import Field as PydanticField
+
+from ..util import construct_union_class_name
+from .registry import Registry
 
 try:
     # Pydantic pre-1.0
@@ -38,10 +44,6 @@ except ImportError:
     SHAPE_MAPPING = (fields.SHAPE_MAPPING,)
 
 
-from graphene import Field, Boolean, Enum, Float, Int, List, String, UUID, Union
-from graphene.types.base import BaseType
-from graphene.types.datetime import Date, Time, DateTime
-
 try:
     from graphene.types.decimal import Decimal as GrapheneDecimal
 
@@ -49,9 +51,6 @@ try:
 except ImportError:  # pragma: no cover
     # graphene 2.1.5+ is required for Decimals
     DECIMAL_SUPPORTED = False
-
-from .registry import Registry
-from .util import construct_union_class_name
 
 
 NONE_TYPE = None.__class__  # need to do this because mypy complains about type(None)
