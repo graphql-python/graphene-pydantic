@@ -69,13 +69,6 @@ def test_builtin_scalars(input, expected):
     assert field.default_value == input[1]
 
 
-def test_union():
-    field = _convert_field_from_spec("attr", (T.Union[int, float, str], 5.0))
-    assert issubclass(field.type, graphene.Union)
-    assert field.default_value == 5.0
-    assert field.type.__name__.startswith("UnionOf")
-
-
 def test_mapping():
     with pytest.raises(ConversionError) as exc:
         _convert_field_from_spec("attr", (T.Dict[str, int], {"foo": 5}))

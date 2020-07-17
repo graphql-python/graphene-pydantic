@@ -55,7 +55,7 @@ def construct_fields(
 
 
 class PydanticInputObjectType(graphene.InputObjectType):
-    """Graphene ObjectType that knows how to map itself to a Pydantic model defined in its nested `Meta` class."""
+    """Graphene InputObjectType that knows how to map itself to a Pydantic model defined in its nested `Meta` class."""
 
     @classmethod
     def __init_subclass_with_meta__(
