@@ -15,13 +15,13 @@ pip install "graphene-pydantic"
 Here is a simple Pydantic model:
 
 ```python
+import uuid
 import pydantic
 
 class PersonModel(pydantic.BaseModel):
     id: uuid.UUID
     first_name: str
     last_name: str
-
 ```
 
 To create a GraphQL schema for it you simply have to write the following:
@@ -33,16 +33,16 @@ from graphene_pydantic import PydanticObjectType
 class Person(PydanticObjectType):
     class Meta:
         model = PersonModel
-        # only return specified fields
-        only_fields = ("name",)
         # exclude specified fields
         exclude_fields = ("id",)
 
 class Query(graphene.ObjectType):
     people = graphene.List(Person)
 
-    def resolve_people(self, info):
-        return get_people()  # function returning `PersonModel`s
+    @staticmethod
+    def resolve_people(parent, info):
+        # fetch actual PersonModels here
+        return [PersonModel(id=uuid.uuid4(), first_name="Beth", last_name="Smith")]
 
 schema = graphene.Schema(query=Query)
 ```
@@ -50,15 +50,64 @@ schema = graphene.Schema(query=Query)
 Then you can simply query the schema:
 
 ```python
-query = '''
+query = """
     query {
       people {
         firstName,
         lastName
       }
     }
-'''
+"""
 result = schema.execute(query)
+print(result.data['people'][0])
+```
+
+### Input Object Types
+
+You can also create input object types from Pydantic models for mutations and queries:
+
+```python
+from graphene_pydantic import PydanticInputObjectType
+
+class PersonInput(PydanticInputObjectType):
+    class Meta:
+        model = PersonModel
+        # exclude specified fields
+        exclude_fields = ("id",)
+
+class CreatePerson(graphene.Mutation):
+    class Arguments:
+        person = PersonInput()
+
+    Output = Person
+
+    @staticmethod
+    def mutate(parent, info, person):
+        personModel = PersonModel(id=uuid.uuid4(), first_name=person.first_name, last_name=person.last_name)
+        # save PersonModel here
+        return person
+
+class Mutation(graphene.ObjectType):
+    createPerson = CreatePerson.Field()
+
+schema = graphene.Schema(mutation=Mutation)
+```
+
+Then execute with the input:
+
+```python
+mutation = '''
+mutation {
+    createPerson(person: {
+        firstName: "Jerry",
+        lastName: "Smith"
+    }) {
+        firstName
+    }
+}
+'''
+result = schema.execute(mutation)
+print(result.data['createPerson']['firstName'])
 ```
 
 ### Forward declarations and circular references
@@ -210,3 +259,7 @@ If a field on a model is a Union between a class and a subclass (as in our examp
 Python 3.6's typing will not preserve the Union and throws away the annotation for the subclass.
 See [this issue](https://github.com/upsidetravel/graphene-pydantic/issues/11) for more details.
 The solution at present is to use Python 3.7.
+
+##### Unions don't work in Input Object Types
+
+GraphQL currently only supports unions for object types. See [this RFC](https://github.com/graphql/graphql-spec/blob/master/rfcs/InputUnion.md) for the progress on supporting input unions.

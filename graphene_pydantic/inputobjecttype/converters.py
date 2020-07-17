@@ -195,7 +195,7 @@ def convert_generic_python_type(
 ) -> BaseType:  # noqa: C901
     """
     Convert annotated Python generic types into the most appropriate Graphene
-    Field type -- e.g. turn `typing.Union` into a Graphene Union.
+    Field type -- e.g. turn `typing.List` into a Graphene List.
     """
     origin = type_.__origin__
     if not origin:  # pragma: no cover  # this really should be impossible
@@ -204,11 +204,7 @@ def convert_generic_python_type(
     # NOTE: This is a little clumsy, but working with generic types is; it's hard to
     # decide whether the origin type is a subtype of, say, T.Iterable since typical
     # Python functions like `isinstance()` don't work
-    if origin == T.Union:
-        return convert_union_type(
-            type_, field, registry, parent_type=parent_type, model=model
-        )
-    elif origin in (
+    if origin in (
         T.Tuple,
         T.List,
         T.Set,
@@ -237,36 +233,3 @@ def convert_generic_python_type(
         raise ConversionError("Don't know how to handle mappings in Graphene")
     else:
         raise ConversionError(f"Don't know how to handle {type_} (generic: {origin})")
-
-
-def convert_union_type(
-    type_: T.Type,
-    field: PydanticField,
-    registry: Registry = None,
-    parent_type: T.Type = None,
-    model: T.Type[BaseModel] = None,
-):
-    """
-    Convert an annotated Python Union type into a Graphene Union.
-    """
-    inner_types = type_.__args__
-    # We use a little metaprogramming -- create our own unique
-    # subclass of graphene.Union that knows its constituent Graphene types
-    parent_types = tuple(
-        find_graphene_type(x, field, registry, parent_type=parent_type, model=model)
-        for x in inner_types
-        if x != NONE_TYPE
-    )
-
-    # This is effectively a typing.Optional[T], which decomposes into a
-    # typing.Union[None, T] -- we can return the Graphene type for T directly
-    # since Pydantic will have already parsed it as optional
-    if len(parent_types) == 1:
-        return parent_types[0]
-
-    internal_meta_cls = type("Meta", (), {"types": parent_types})
-
-    union_cls = type(
-        construct_union_class_name(inner_types), (Union,), {"Meta": internal_meta_cls}
-    )
-    return union_cls
