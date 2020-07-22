@@ -193,6 +193,8 @@ def find_graphene_type(
         )
     elif issubclass(type_, enum.Enum):
         return Enum.from_enum(type_)
+    elif issubclass(type_, str):
+        return String
     else:
         raise ConversionError(
             f"Don't know how to convert the Pydantic field {field!r} ({field.type_})"
