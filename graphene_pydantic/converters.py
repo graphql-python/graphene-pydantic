@@ -123,7 +123,7 @@ def convert_pydantic_type(
         # TODO: _should_ Sets remain here?
         return List(graphene_type)
     elif field.shape in SHAPE_MAPPING:
-        raise ConversionError(f"Don't know how to handle mappings in Graphene.")
+        raise ConversionError("Don't know how to handle mappings in Graphene.")
 
 
 def find_graphene_type(
