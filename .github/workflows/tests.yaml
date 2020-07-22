@@ -10,14 +10,18 @@ jobs:
     - name: Install
       uses: abatilo/actions-poetry@v1.5.0
       with:
-        python_version: 3.8.0
+        python_version: 3.8.3
         poetry_version: 1.0
-        working_directory: ./working_dir # Optional, defaults to '.'
         args: install
+    - name: Lint
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: 3.8.3
+        poetry_version: 1.0
+        args: run pre-commit run --all-files
     - name: Run pytest
       uses: abatilo/actions-poetry@v1.5.0
       with:
-        python_version: 3.8.0
+        python_version: 3.8.3
         poetry_version: 1.0
-        working_directory: ./working_dir
-        args: run python -m pytest --cov=src --cov-branch --cov-fail-under=75 tests/
+        args: run pytest
