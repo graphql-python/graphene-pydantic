@@ -1,4 +1,4 @@
-from .inputobjecttype.types import PydanticInputObjectType
-from .objecttype.types import PydanticObjectType
+from .inputobjecttype import PydanticInputObjectType
+from .objecttype import PydanticObjectType
 
 __all__ = ["PydanticObjectType", "PydanticInputObjectType"]

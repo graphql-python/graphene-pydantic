@@ -3,7 +3,7 @@ import typing as T
 import pytest
 from pydantic import BaseModel
 
-from graphene_pydantic.objecttype.types import PydanticObjectType
+from graphene_pydantic.inputobjecttype import PydanticInputObjectType
 
 
 def test_object_type_onlyfields():
@@ -12,7 +12,7 @@ def test_object_type_onlyfields():
         size: int
         color: T.Tuple[int, int, int, int]
 
-    class GraphFoo(PydanticObjectType):
+    class GraphFoo(PydanticInputObjectType):
         class Meta:
             model = Foo
             only_fields = ("name",)
@@ -26,7 +26,7 @@ def test_object_type_excludefields():
         size: int
         color: T.Tuple[int, int, int, int]
 
-    class GraphFoo(PydanticObjectType):
+    class GraphFoo(PydanticInputObjectType):
         class Meta:
             model = Foo
             exclude_fields = ("size",)
@@ -42,7 +42,7 @@ def test_object_type_onlyandexclude():
 
     with pytest.raises(ValueError):
 
-        class GraphFoo(PydanticObjectType):
+        class GraphFoo(PydanticInputObjectType):
             class Meta:
                 model = Foo
                 only_fields = ("name",)

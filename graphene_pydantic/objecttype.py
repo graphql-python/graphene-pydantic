@@ -1,13 +1,12 @@
 import typing as T
 
-import pydantic
-
 import graphene
+import pydantic
 from graphene.types.objecttype import ObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
-from .registry import get_global_registry, Registry, Placeholder
 from .converters import convert_pydantic_field
+from .registry import Placeholder, Registry, get_global_registry
 
 
 class PydanticObjectTypeOptions(ObjectTypeOptions):
@@ -47,7 +46,7 @@ def construct_fields(
         converted = convert_pydantic_field(
             field, registry, parent_type=obj_type, model=model
         )
-        registry.register_object_field(obj_type, name, field, model=model)
+        registry.register_object_field(obj_type, name, field)
         fields[name] = converted
     return fields
 
@@ -85,7 +84,7 @@ class PydanticObjectType(graphene.ObjectType):
             )
 
         if not registry:
-            registry = get_global_registry()
+            registry = get_global_registry(PydanticObjectType)
 
         pydantic_fields = yank_fields_from_attrs(
             construct_fields(
@@ -149,8 +148,6 @@ class PydanticObjectType(graphene.ObjectType):
                     model=target_type.model,
                 )
                 fields_to_update[name] = graphene_field
-                meta.registry.register_object_field(
-                    cls, name, pydantic_field, model=target_type.model
-                )
+                meta.registry.register_object_field(cls, name, pydantic_field)
         # update the graphene side of things
         meta.fields.update(fields_to_update)

@@ -7,14 +7,25 @@ import sys
 import typing as T
 import uuid
 
-from graphene import UUID, Boolean, Enum, Float, InputField, Int, List, String, Union
+from graphene import (
+    UUID,
+    Boolean,
+    Enum,
+    Field,
+    Float,
+    InputField,
+    Int,
+    List,
+    String,
+    Union,
+)
 from graphene.types.base import BaseType
 from graphene.types.datetime import Date, DateTime, Time
 from pydantic import BaseModel
-from pydantic.fields import Field as PydanticField
+from pydantic.fields import ModelField
 
-from ..util import construct_union_class_name
 from .registry import Registry
+from .util import construct_union_class_name
 
 try:
     # Pydantic pre-1.0
@@ -60,8 +71,20 @@ class ConversionError(TypeError):
     pass
 
 
-def convert_pydantic_field(
-    field: PydanticField,
+def get_attr_resolver(attr_name: str) -> T.Callable:
+    """
+    Return a helper function that resolves a field with the given name by
+    looking it up as an attribute of the type we're trying to resolve it on.
+    """
+
+    def _get_field(root, _info):
+        return getattr(root, attr_name, None)
+
+    return _get_field
+
+
+def convert_pydantic_input_field(
+    field: ModelField,
     registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
@@ -71,6 +94,7 @@ def convert_pydantic_field(
     Convert a Pydantic model field into a Graphene type field that we can add
     to the generated Graphene data model type.
     """
+    print("convert_pydantic_input_field", type(field))
     declared_type = getattr(field, "type_", None)
     field_kwargs.setdefault(
         "type",
@@ -89,10 +113,40 @@ def convert_pydantic_field(
     return InputField(**field_kwargs)
 
 
+def convert_pydantic_field(
+    field: ModelField,
+    registry: Registry,
+    parent_type: T.Type = None,
+    model: T.Type[BaseModel] = None,
+    **field_kwargs,
+) -> Field:
+    """
+    Convert a Pydantic model field into a Graphene type field that we can add
+    to the generated Graphene data model type.
+    """
+    print("convert_pydantic_field", type(field))
+    declared_type = getattr(field, "type_", None)
+    field_kwargs.setdefault(
+        "type",
+        convert_pydantic_type(
+            declared_type, field, registry, parent_type=parent_type, model=model
+        ),
+    )
+    field_kwargs.setdefault("required", field.required)
+    field_kwargs.setdefault("default_value", field.default)
+    # TODO: find a better way to get a field's description. Some ideas include:
+    # - hunt down the description from the field's schema, or the schema
+    #   from the field's base model
+    # - maybe even (Sphinx-style) parse attribute documentation
+    field_kwargs.setdefault("description", field.__doc__)
+
+    return Field(resolver=get_attr_resolver(field.name), **field_kwargs)
+
+
 def convert_pydantic_type(
     type_: T.Type,
-    field: PydanticField,
-    registry: Registry = None,
+    field: ModelField,
+    registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
 ) -> BaseType:  # noqa: C901
@@ -115,8 +169,8 @@ def convert_pydantic_type(
 
 def find_graphene_type(
     type_: T.Type,
-    field: PydanticField,
-    registry: Registry = None,
+    field: ModelField,
+    registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
 ) -> BaseType:  # noqa: C901
@@ -188,14 +242,14 @@ def find_graphene_type(
 
 def convert_generic_python_type(
     type_: T.Type,
-    field: PydanticField,
-    registry: Registry = None,
+    field: ModelField,
+    registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
 ) -> BaseType:  # noqa: C901
     """
     Convert annotated Python generic types into the most appropriate Graphene
-    Field type -- e.g. turn `typing.List` into a Graphene List.
+    Field type -- e.g. turn `typing.Union` into a Graphene Union.
     """
     origin = type_.__origin__
     if not origin:  # pragma: no cover  # this really should be impossible
@@ -204,7 +258,11 @@ def convert_generic_python_type(
     # NOTE: This is a little clumsy, but working with generic types is; it's hard to
     # decide whether the origin type is a subtype of, say, T.Iterable since typical
     # Python functions like `isinstance()` don't work
-    if origin in (
+    if origin == T.Union:
+        return convert_union_type(
+            type_, field, registry, parent_type=parent_type, model=model
+        )
+    elif origin in (
         T.Tuple,
         T.List,
         T.Set,
@@ -233,3 +291,36 @@ def convert_generic_python_type(
         raise ConversionError("Don't know how to handle mappings in Graphene")
     else:
         raise ConversionError(f"Don't know how to handle {type_} (generic: {origin})")
+
+
+def convert_union_type(
+    type_: T.Type,
+    field: ModelField,
+    registry: Registry,
+    parent_type: T.Type = None,
+    model: T.Type[BaseModel] = None,
+):
+    """
+    Convert an annotated Python Union type into a Graphene Union.
+    """
+    inner_types = type_.__args__
+    # We use a little metaprogramming -- create our own unique
+    # subclass of graphene.Union that knows its constituent Graphene types
+    parent_types = tuple(
+        find_graphene_type(x, field, registry, parent_type=parent_type, model=model)
+        for x in inner_types
+        if x != NONE_TYPE
+    )
+
+    # This is effectively a typing.Optional[T], which decomposes into a
+    # typing.Union[None, T] -- we can return the Graphene type for T directly
+    # since Pydantic will have already parsed it as optional
+    if len(parent_types) == 1:
+        return parent_types[0]
+
+    internal_meta_cls = type("Meta", (), {"types": parent_types})
+
+    union_cls = type(
+        construct_union_class_name(inner_types), (Union,), {"Meta": internal_meta_cls}
+    )
+    return union_cls

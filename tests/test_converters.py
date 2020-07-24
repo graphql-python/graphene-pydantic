@@ -10,12 +10,10 @@ import pydantic
 import pytest
 from pydantic import BaseModel, create_model
 
-import graphene_pydantic.objecttype.converters as converters
-from graphene_pydantic.objecttype.converters import (
-    ConversionError,
-    convert_pydantic_field,
-)
-from graphene_pydantic.objecttype.registry import get_global_registry
+import graphene_pydantic.converters as converters
+from graphene_pydantic.converters import ConversionError, convert_pydantic_field
+from graphene_pydantic.objecttype import PydanticObjectType
+from graphene_pydantic.registry import get_global_registry
 
 
 def _get_field_from_spec(name, type_spec_or_default):
@@ -26,7 +24,8 @@ def _get_field_from_spec(name, type_spec_or_default):
 
 def _convert_field_from_spec(name, type_spec_or_default):
     return convert_pydantic_field(
-        _get_field_from_spec(name, type_spec_or_default), get_global_registry()
+        _get_field_from_spec(name, type_spec_or_default),
+        get_global_registry(PydanticObjectType),
     )
 
 

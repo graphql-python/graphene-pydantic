@@ -2,10 +2,11 @@ import typing as T
 
 import graphene
 import pydantic
+from graphene import InputField
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
-from .converters import convert_pydantic_field
+from .converters import convert_pydantic_input_field
 from .registry import Placeholder, Registry, get_global_registry
 
 
@@ -23,7 +24,7 @@ def construct_fields(
     registry: Registry,
     only_fields: T.Tuple[str, ...],
     exclude_fields: T.Tuple[str, ...],
-) -> T.Dict[str, graphene.Field]:
+) -> T.Dict[str, graphene.InputField]:
     """
     Construct all the fields for a PydanticInputObjectType.
 
@@ -43,10 +44,10 @@ def construct_fields(
 
     fields = {}
     for name, field in fields_to_convert:
-        converted = convert_pydantic_field(
+        converted = convert_pydantic_input_field(
             field, registry, parent_type=obj_type, model=model
         )
-        registry.register_object_field(obj_type, name, field, model=model)
+        registry.register_object_field(obj_type, name, field)
         fields[name] = converted
     return fields
 
@@ -83,7 +84,7 @@ class PydanticInputObjectType(graphene.InputObjectType):
             )
 
         if not registry:
-            registry = get_global_registry()
+            registry = get_global_registry(PydanticInputObjectType)
 
         pydantic_fields = yank_fields_from_attrs(
             construct_fields(
@@ -93,7 +94,7 @@ class PydanticInputObjectType(graphene.InputObjectType):
                 only_fields=only_fields,
                 exclude_fields=exclude_fields,
             ),
-            _as=graphene.Field,
+            _as=graphene.InputField,
             sort=False,
         )
 
