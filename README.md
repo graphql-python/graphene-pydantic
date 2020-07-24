@@ -260,6 +260,6 @@ Python 3.6's typing will not preserve the Union and throws away the annotation f
 See [this issue](https://github.com/upsidetravel/graphene-pydantic/issues/11) for more details.
 The solution at present is to use Python 3.7.
 
-##### Unions don't work in Input Object Types
+##### Input Object Types don't support unions as fields
 
-GraphQL currently only supports unions for object types. See [this RFC](https://github.com/graphql/graphql-spec/blob/master/rfcs/InputUnion.md) for the progress on supporting input unions.
+This is a GraphQL limitation. See [this RFC](https://github.com/graphql/graphql-spec/blob/master/rfcs/InputUnion.md) for the progress on supporting input unions. If you see an error like '{union-type} may only contain Object types', you are most likely encountering this limitation.

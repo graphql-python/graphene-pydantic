@@ -94,7 +94,6 @@ def convert_pydantic_input_field(
     Convert a Pydantic model field into a Graphene type field that we can add
     to the generated Graphene data model type.
     """
-    print("convert_pydantic_input_field", type(field))
     declared_type = getattr(field, "type_", None)
     field_kwargs.setdefault(
         "type",
@@ -124,7 +123,6 @@ def convert_pydantic_field(
     Convert a Pydantic model field into a Graphene type field that we can add
     to the generated Graphene data model type.
     """
-    print("convert_pydantic_field", type(field))
     declared_type = getattr(field, "type_", None)
     field_kwargs.setdefault(
         "type",

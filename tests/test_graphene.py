@@ -80,7 +80,6 @@ def test_query():
 
     assert result.errors is None
     assert result.data is not None
-    print(result)
     assert pydantic.parse_obj_as(List[FooBar], result.data["listFooBars"]) == foo_bars
 
 
