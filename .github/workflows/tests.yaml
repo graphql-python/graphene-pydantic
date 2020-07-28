@@ -1,0 +1,27 @@
+ name: Run Tests
+on: push
+
+jobs:
+  pytest:
+    name: pytest
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Install
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: 3.8.3
+        poetry_version: 1.0
+        args: install
+    - name: Lint
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: 3.8.3
+        poetry_version: 1.0
+        args: run pre-commit run --all-files
+    - name: Run pytest
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: 3.8.3
+        poetry_version: 1.0
+        args: run pytest
