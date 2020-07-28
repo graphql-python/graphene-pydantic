@@ -1,14 +1,14 @@
 import typing
 from collections import defaultdict
-from typing import Any, Dict, Generic, Optional, Type, TypeVar, Union
+from typing import Dict, Generic, Optional, Type, TypeVar, Union
 
-from graphene import ObjectType
+# from graphene import ObjectType as BaseObjectType
 from pydantic import BaseModel
 from pydantic.fields import ModelField
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from graphene_pydantic import PydanticInputObjectType
-    from graphene_pydantic import PydanticObjectType
+    from graphene_pydantic import PydanticInputObjectType  # noqa: F401
+    from graphene_pydantic import PydanticObjectType  # noqa: F401
 
 T = TypeVar("T", "PydanticInputObjectType", "PydanticObjectType")
 ObjectType = Type[T]
