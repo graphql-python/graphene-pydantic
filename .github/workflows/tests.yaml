@@ -1,7 +1,18 @@
- name: Run Tests
-on: push
+name: Lint & test
+on: [push, pull_request]
 
 jobs:
+  linters:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Lint
+      uses: abatilo/actions-poetry@v1.5.0
+      with:
+        python_version: 3.8
+        poetry_version: 1.0
+        args: run pre-commit run --all-files
   pytest:
     name: pytest
     runs-on: ubuntu-latest
@@ -10,18 +21,18 @@ jobs:
     - name: Install
       uses: abatilo/actions-poetry@v1.5.0
       with:
-        python_version: 3.8.3
+        python_version: 3.8
         poetry_version: 1.0
         args: install
     - name: Lint
       uses: abatilo/actions-poetry@v1.5.0
       with:
-        python_version: 3.8.3
+        python_version: 3.8
         poetry_version: 1.0
         args: run pre-commit run --all-files
     - name: Run pytest
       uses: abatilo/actions-poetry@v1.5.0
       with:
-        python_version: 3.8.3
+        python_version: 3.8
         poetry_version: 1.0
         args: run pytest
