@@ -1,16 +1,16 @@
 import typing as T
 
-import pydantic
-
 import graphene
-from graphene.types.objecttype import ObjectTypeOptions
+import pydantic
+from graphene import InputField
+from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
-from .registry import get_global_registry, Registry, Placeholder
-from .converters import convert_pydantic_field
+from .converters import convert_pydantic_input_field
+from .registry import Placeholder, Registry, get_global_registry
 
 
-class PydanticObjectTypeOptions(ObjectTypeOptions):
+class PydanticInputObjectTypeOptions(InputObjectTypeOptions):
     # TODO:
     # It's not clear what purpose this serves within Graphene, or whether
     # it'd be meaningful to construct this from the pydantic.Config associated
@@ -19,14 +19,14 @@ class PydanticObjectTypeOptions(ObjectTypeOptions):
 
 
 def construct_fields(
-    obj_type: T.Type["PydanticObjectType"],
+    obj_type: T.Type["PydanticInputObjectType"],
     model: T.Type[pydantic.BaseModel],
     registry: Registry,
     only_fields: T.Tuple[str, ...],
     exclude_fields: T.Tuple[str, ...],
-) -> T.Dict[str, graphene.Field]:
+) -> T.Dict[str, graphene.InputField]:
     """
-    Construct all the fields for a PydanticObjectType.
+    Construct all the fields for a PydanticInputObjectType.
 
     NOTE: Currently simply fetches all the attributes from the Pydantic model
     `__fields__`. In the future we hope to implement field-level overrides that
@@ -44,10 +44,10 @@ def construct_fields(
 
     fields = {}
     for name, field in fields_to_convert:
-        converted = convert_pydantic_field(
+        converted = convert_pydantic_input_field(
             field, registry, parent_type=obj_type, model=model
         )
-        registry.register_object_field(obj_type, name, field, model=model)
+        registry.register_object_field(obj_type, name, field)
         fields[name] = converted
     return fields
 
@@ -55,8 +55,8 @@ def construct_fields(
 # TODO: implement an OverrideField of some kind
 
 
-class PydanticObjectType(graphene.ObjectType):
-    """Graphene ObjectType that knows how to map itself to a Pydantic model defined in its nested `Meta` class."""
+class PydanticInputObjectType(graphene.InputObjectType):
+    """Graphene InputObjectType that knows how to map itself to a Pydantic model defined in its nested `Meta` class."""
 
     @classmethod
     def __init_subclass_with_meta__(
@@ -66,7 +66,6 @@ class PydanticObjectType(graphene.ObjectType):
         skip_registry: bool = False,
         only_fields: T.Tuple[str, ...] = (),
         exclude_fields: T.Tuple[str, ...] = (),
-        interfaces=(),
         id=None,
         _meta=None,
         **options,
@@ -85,7 +84,7 @@ class PydanticObjectType(graphene.ObjectType):
             )
 
         if not registry:
-            registry = get_global_registry()
+            registry = get_global_registry(PydanticInputObjectType)
 
         pydantic_fields = yank_fields_from_attrs(
             construct_fields(
@@ -95,12 +94,12 @@ class PydanticObjectType(graphene.ObjectType):
                 only_fields=only_fields,
                 exclude_fields=exclude_fields,
             ),
-            _as=graphene.Field,
+            _as=graphene.InputField,
             sort=False,
         )
 
         if not _meta:
-            _meta = PydanticObjectTypeOptions(cls)
+            _meta = PydanticInputObjectTypeOptions(cls)
 
         _meta.model = model
         _meta.registry = registry
@@ -112,16 +111,7 @@ class PydanticObjectType(graphene.ObjectType):
 
         _meta.id = id or "id"
 
-        # TODO: We don't currently do anything with interfaces, and it would
-        # be great to handle them as well. Some options include:
-        # - throwing an error if they're present, because we _can't_ handle them
-        # - finding a model class with that name and generating an interface
-        #   from it
-        # - using the nearest common ancestor of multiple types in a Union
-
-        super().__init_subclass_with_meta__(
-            _meta=_meta, interfaces=interfaces, **options
-        )
+        super().__init_subclass_with_meta__(_meta=_meta, **options)
 
         if not skip_registry:
             registry.register(cls)
@@ -131,7 +121,7 @@ class PydanticObjectType(graphene.ObjectType):
         """
         If this class has any placeholders in the registry (e.g. classes that
         weren't resolvable when the class was created, perhaps due to the
-        PydanticObjectType wrapper not existing yet), resolve them as far as
+        PydanticInputObjectType wrapper not existing yet), resolve them as far as
         possible.
         """
         meta = cls._meta

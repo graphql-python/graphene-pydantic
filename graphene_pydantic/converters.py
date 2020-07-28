@@ -1,14 +1,31 @@
-import sys
 import collections
 import collections.abc
-import typing as T
-import uuid
 import datetime
 import decimal
 import enum
+import sys
+import typing as T
+import uuid
 
+from graphene import (
+    UUID,
+    Boolean,
+    Enum,
+    Field,
+    Float,
+    InputField,
+    Int,
+    List,
+    String,
+    Union,
+)
+from graphene.types.base import BaseType
+from graphene.types.datetime import Date, DateTime, Time
 from pydantic import BaseModel
-from pydantic.fields import Field as PydanticField
+from pydantic.fields import ModelField
+
+from .registry import Registry
+from .util import construct_union_class_name
 
 try:
     # Pydantic pre-1.0
@@ -38,10 +55,6 @@ except ImportError:
     SHAPE_MAPPING = (fields.SHAPE_MAPPING,)
 
 
-from graphene import Field, Boolean, Enum, Float, Int, List, String, UUID, Union
-from graphene.types.base import BaseType
-from graphene.types.datetime import Date, Time, DateTime
-
 try:
     from graphene.types.decimal import Decimal as GrapheneDecimal
 
@@ -49,9 +62,6 @@ try:
 except ImportError:  # pragma: no cover
     # graphene 2.1.5+ is required for Decimals
     DECIMAL_SUPPORTED = False
-
-from .registry import Registry
-from .util import construct_union_class_name
 
 
 NONE_TYPE = None.__class__  # need to do this because mypy complains about type(None)
@@ -73,8 +83,37 @@ def get_attr_resolver(attr_name: str) -> T.Callable:
     return _get_field
 
 
+def convert_pydantic_input_field(
+    field: ModelField,
+    registry: Registry,
+    parent_type: T.Type = None,
+    model: T.Type[BaseModel] = None,
+    **field_kwargs,
+) -> InputField:
+    """
+    Convert a Pydantic model field into a Graphene type field that we can add
+    to the generated Graphene data model type.
+    """
+    declared_type = getattr(field, "type_", None)
+    field_kwargs.setdefault(
+        "type",
+        convert_pydantic_type(
+            declared_type, field, registry, parent_type=parent_type, model=model
+        ),
+    )
+    field_kwargs.setdefault("required", field.required)
+    field_kwargs.setdefault("default_value", field.default)
+    # TODO: find a better way to get a field's description. Some ideas include:
+    # - hunt down the description from the field's schema, or the schema
+    #   from the field's base model
+    # - maybe even (Sphinx-style) parse attribute documentation
+    field_kwargs.setdefault("description", field.__doc__)
+
+    return InputField(**field_kwargs)
+
+
 def convert_pydantic_field(
-    field: PydanticField,
+    field: ModelField,
     registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
@@ -104,8 +143,8 @@ def convert_pydantic_field(
 
 def convert_pydantic_type(
     type_: T.Type,
-    field: PydanticField,
-    registry: Registry = None,
+    field: ModelField,
+    registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
 ) -> BaseType:  # noqa: C901
@@ -128,8 +167,8 @@ def convert_pydantic_type(
 
 def find_graphene_type(
     type_: T.Type,
-    field: PydanticField,
-    registry: Registry = None,
+    field: ModelField,
+    registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
 ) -> BaseType:  # noqa: C901
@@ -203,8 +242,8 @@ def find_graphene_type(
 
 def convert_generic_python_type(
     type_: T.Type,
-    field: PydanticField,
-    registry: Registry = None,
+    field: ModelField,
+    registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
 ) -> BaseType:  # noqa: C901
@@ -256,8 +295,8 @@ def convert_generic_python_type(
 
 def convert_union_type(
     type_: T.Type,
-    field: PydanticField,
-    registry: Registry = None,
+    field: ModelField,
+    registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
 ):
