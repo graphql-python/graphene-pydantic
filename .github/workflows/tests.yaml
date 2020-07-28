@@ -5,26 +5,18 @@ jobs:
   linters:
     name: lint
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.7, 3.8]
     steps:
     - uses: actions/checkout@master
-    - name: Install
-      uses: abatilo/actions-poetry@v1.5.0
+    - uses: actions/setup-python@v1
       with:
-        python-version: ${{ matrix.python-version }}
-        poetry_version: 1.0
-        args: install
-    - name: Lint with pre-commit
-      uses: abatilo/actions-poetry@v1.5.0
-      with:
-        python-version: ${{ matrix.python-version }}
-        poetry_version: 1.0
-        args: run pre-commit run --all-files
+        python-version: 3.8
+    - uses: pre-commit/action@v2.0.0
   pytest:
     name: pytest
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8]
     steps:
     - uses: actions/checkout@master
     - name: Install
