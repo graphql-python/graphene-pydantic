@@ -31,4 +31,3 @@ jobs:
         python-version: ${{ matrix.python-version }}
         poetry_version: 1.0
         args: run tox
-
