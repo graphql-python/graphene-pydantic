@@ -2,7 +2,6 @@ import typing
 from collections import defaultdict
 from typing import Dict, Generic, Optional, Type, TypeVar, Union
 
-# from graphene import ObjectType as BaseObjectType
 from pydantic import BaseModel
 from pydantic.fields import ModelField
 
