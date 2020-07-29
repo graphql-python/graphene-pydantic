@@ -22,7 +22,7 @@ keywords = ["api", "graphql", "protocol", "rest", "relay", "graphene", "pydantic
 python = "^3.6"
 # To keep things simple, we only support newer versions of Graphene & Pydantic
 graphene = ">=2.1.3,<3"
-pydantic = ">=0.26,<=1.6"
+pydantic = ">=1.0,<=1.6"
 
 [tool.poetry.dev-dependencies]
 pytest = "~4.6.4"
@@ -31,6 +31,7 @@ tox = "~3.12.0"  # sync with tox.ini
 mypy = "0.720"
 black = "19.3b0"
 pre-commit = "~1.17.0"
+tox-gh-actions = "^1.3.0"
 
 [build-system]
 requires = ["poetry>=0.12"]

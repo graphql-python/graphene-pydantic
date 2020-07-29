@@ -24,7 +24,7 @@ def construct_fields(
     registry: Registry,
     only_fields: T.Tuple[str, ...],
     exclude_fields: T.Tuple[str, ...],
-) -> T.Dict[str, graphene.InputField]:
+) -> T.Dict[str, InputField]:
     """
     Construct all the fields for a PydanticInputObjectType.
 
@@ -94,7 +94,7 @@ class PydanticInputObjectType(graphene.InputObjectType):
                 only_fields=only_fields,
                 exclude_fields=exclude_fields,
             ),
-            _as=graphene.InputField,
+            _as=InputField,
             sort=False,
         )
 
@@ -132,7 +132,7 @@ class PydanticInputObjectType(graphene.InputObjectType):
                 target_type = target_type._of_type
             if isinstance(target_type, Placeholder):
                 pydantic_field = meta.model.__fields__[name]
-                graphene_field = convert_pydantic_field(
+                graphene_field = convert_pydantic_input_field(
                     pydantic_field,
                     meta.registry,
                     parent_type=cls,

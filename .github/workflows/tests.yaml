@@ -1,27 +1,33 @@
- name: Run Tests
-on: push
+name: Lint & test
+on: [push, pull_request]
 
 jobs:
+  linters:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+    - uses: pre-commit/action@v2.0.0
   pytest:
     name: pytest
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8]
     steps:
     - uses: actions/checkout@master
     - name: Install
       uses: abatilo/actions-poetry@v1.5.0
       with:
-        python_version: 3.8.3
+        python_version: ${{ matrix.python-version }}
         poetry_version: 1.0
         args: install
-    - name: Lint
+    - name: Run matrix of tests with Tox
       uses: abatilo/actions-poetry@v1.5.0
       with:
-        python_version: 3.8.3
+        python_version: ${{ matrix.python-version }}
         poetry_version: 1.0
-        args: run pre-commit run --all-files
-    - name: Run pytest
-      uses: abatilo/actions-poetry@v1.5.0
-      with:
-        python_version: 3.8.3
-        poetry_version: 1.0
-        args: run pytest
+        args: run tox
