@@ -10,7 +10,7 @@ from graphene_pydantic import PydanticObjectType
 import pytest
 
 if sys.version_info < (3, 7):
-    pytest.skip("ForwardRefs feature requires Python 3.7+")
+    pytest.skip("ForwardRefs feature requires Python 3.7+", allow_module_level=True)
 
 
 class FooModel(pydantic.BaseModel):
