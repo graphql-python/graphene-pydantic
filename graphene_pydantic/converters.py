@@ -107,7 +107,7 @@ def convert_pydantic_input_field(
     # - hunt down the description from the field's schema, or the schema
     #   from the field's base model
     # - maybe even (Sphinx-style) parse attribute documentation
-    field_kwargs.setdefault("description", field.__doc__)
+    field_kwargs.setdefault("description", field.field_info.description)
 
     return InputField(**field_kwargs)
 
@@ -136,7 +136,7 @@ def convert_pydantic_field(
     # - hunt down the description from the field's schema, or the schema
     #   from the field's base model
     # - maybe even (Sphinx-style) parse attribute documentation
-    field_kwargs.setdefault("description", field.__doc__)
+    field_kwargs.setdefault("description", field.field_info.description)
 
     return Field(resolver=get_attr_resolver(field.name), **field_kwargs)
 
