@@ -262,15 +262,19 @@ def convert_generic_python_type(
         return convert_union_type(
             type_, field, registry, parent_type=parent_type, model=model
         )
-    elif origin in (
-        T.Tuple,
-        T.List,
-        T.Set,
-        T.Collection,
-        T.Iterable,
-        list,
-        set,
-    ) or issubclass(origin, collections.abc.Sequence):
+    elif (
+        origin
+        in (
+            T.Tuple,
+            T.List,
+            T.Set,
+            T.Collection,
+            T.Iterable,
+            list,
+            set,
+        )
+        or issubclass(origin, collections.abc.Sequence)
+    ):
         # TODO: find a better way of divining that the origin is sequence-like
         inner_types = getattr(type_, "__args__", [])
         if not inner_types:  # pragma: no cover  # this really should be impossible
