@@ -2,6 +2,7 @@ import collections
 import collections.abc
 import datetime
 import decimal
+import inspect
 import enum
 import sys
 import typing as T
@@ -199,7 +200,10 @@ def find_graphene_type(
         return List
     elif registry and registry.get_type_for_model(type_):
         return registry.get_type_for_model(type_)
-    elif registry and isinstance(type_, BaseModel):
+    elif registry and (
+        isinstance(type_, BaseModel)
+        or (inspect.isclass(type_) and issubclass(type_, BaseModel))
+    ):
         # If it's a Pydantic model that hasn't yet been wrapped with a ObjectType,
         # we can put a placeholder in and request that `resolve_placeholders()`
         # be called to update it.
@@ -262,15 +266,19 @@ def convert_generic_python_type(
         return convert_union_type(
             type_, field, registry, parent_type=parent_type, model=model
         )
-    elif origin in (
-        T.Tuple,
-        T.List,
-        T.Set,
-        T.Collection,
-        T.Iterable,
-        list,
-        set,
-    ) or issubclass(origin, collections.abc.Sequence):
+    elif (
+        origin
+        in (
+            T.Tuple,
+            T.List,
+            T.Set,
+            T.Collection,
+            T.Iterable,
+            list,
+            set,
+        )
+        or issubclass(origin, collections.abc.Sequence)
+    ):
         # TODO: find a better way of divining that the origin is sequence-like
         inner_types = getattr(type_, "__args__", [])
         if not inner_types:  # pragma: no cover  # this really should be impossible

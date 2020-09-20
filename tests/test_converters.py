@@ -13,7 +13,7 @@ from pydantic import BaseModel, create_model
 import graphene_pydantic.converters as converters
 from graphene_pydantic.converters import ConversionError, convert_pydantic_field
 from graphene_pydantic.objecttype import PydanticObjectType
-from graphene_pydantic.registry import get_global_registry
+from graphene_pydantic.registry import get_global_registry, Placeholder
 
 
 def _get_field_from_spec(name, type_spec_or_default):
@@ -141,15 +141,34 @@ def test_existing_model():
     assert field.type == GraphFoo
 
 
-def test_unknown():
-    with pytest.raises(ConversionError) as exc:
-        _convert_field_from_spec("attr", (create_model("Model", size=int), None))
-    assert "Don't know how to convert" in exc.value.args[0]
-    if pydantic.version.VERSION < "1.0":
-        assert "Field(attr type=Model default=None)" in exc.value.args[0]
-    else:
-        # this worked at least as of 1.1
-        assert (
-            "ModelField(name='attr', type=Optional[Model], required=False, default=None)"
-            in exc.value.args[0]
-        )
+def test_unresolved_placeholders():
+    # no errors should be raised here -- instead a placeholder is created
+    field = _convert_field_from_spec("attr", (create_model("Model", size=int), None))
+    assert any(
+        isinstance(x, Placeholder)
+        for x in get_global_registry(PydanticObjectType)._registry.values()
+    )
+    # this is a runtime error waiting to happen, but what can we do about it?
+    assert field.type is None
+
+
+def test_self_referencing():
+    class NodeModel(BaseModel):
+        id: int
+        name: str
+        # nodes: Union['NodeModel', None]
+        nodes: T.Optional["NodeModel"]
+
+    NodeModel.update_forward_refs()
+
+    class NodeModelSchema(PydanticObjectType):
+        class Meta:  # noqa: too-few-public-methods
+            model = NodeModel
+
+        @classmethod
+        def is_type_of(cls, root, info):
+            return isinstance(root, (cls, NodeModel))
+
+    NodeModelSchema.resolve_placeholders()
+
+    assert NodeModelSchema._meta.model is NodeModel
