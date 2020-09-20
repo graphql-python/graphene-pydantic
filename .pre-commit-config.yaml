@@ -19,6 +19,6 @@ repos:
       - id: mypy
         args: [--ignore-missing-imports, --no-strict-optional]
   - repo: https://github.com/python/black
-    rev: stable
+    rev: 20.8b1
     hooks:
       - id: black
