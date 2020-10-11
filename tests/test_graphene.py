@@ -111,7 +111,10 @@ def test_mutation():
                 count
             }
         }
-    """ % (new_foo_bar.name, new_foo_bar.count)
+    """ % (
+        new_foo_bar.name,
+        new_foo_bar.count,
+    )
     result = schema.execute(query)
 
     assert result.errors is None
