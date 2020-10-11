@@ -59,24 +59,19 @@ class Mutation(graphene.ObjectType):
 
 
 def test_query():
-    from graphql.execution.executors.sync import SyncExecutor
-
     global foo_bars
     foo_bars = [FooBar(name="test", count=1)]
 
     schema = graphene.Schema(query=Query)
-    result = schema.execute(
-        """
+    query = """
         query {
             listFooBars {
-            name
-            count
+                name
+                count
             }
         }
-        """,
-        executor=SyncExecutor(),
-        return_promise=False,
-    )
+    """
+    result = schema.execute(query)
 
     assert result.errors is None
     assert result.data is not None
@@ -84,24 +79,19 @@ def test_query():
 
 
 def test_query_with_match():
-    from graphql.execution.executors.sync import SyncExecutor
-
     global foo_bars
     foo_bars = [FooBar(name="test", count=1)]
 
     schema = graphene.Schema(query=Query)
-    result = schema.execute(
-        """
+    query = """
         query {
             listFooBars(match: {name: "test", count: 1}) {
-            name
-            count
+                name
+                count
             }
         }
-        """,
-        executor=SyncExecutor(),
-        return_promise=False,
-    )
+    """
+    result = schema.execute(query)
 
     assert result.errors is None
     assert result.data is not None
@@ -109,26 +99,20 @@ def test_query_with_match():
 
 
 def test_mutation():
-    from graphql.execution.executors.sync import SyncExecutor
-
     global foo_bars
     foo_bars = []
 
-    schema = graphene.Schema(mutation=Mutation)
+    schema = graphene.Schema(query=Query, mutation=Mutation)
     new_foo_bar = FooBar(name="mutant", count=-1)
-    result = schema.execute(
-        """
+    query = """
         mutation {
             createFooBar(data: {name: "%s", count: %d}) {
-            name
-            count
+                name
+                count
             }
         }
-        """
-        % (new_foo_bar.name, new_foo_bar.count),
-        executor=SyncExecutor(),
-        return_promise=False,
-    )
+    """ % (new_foo_bar.name, new_foo_bar.count)
+    result = schema.execute(query)
 
     assert result.errors is None
     assert result.data is not None
