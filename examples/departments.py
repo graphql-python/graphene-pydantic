@@ -103,37 +103,32 @@ class Query(graphene.ObjectType):
 
 
 if __name__ == "__main__":
-    from graphql.execution.executors.sync import SyncExecutor
-
     schema = graphene.Schema(query=Query)
-    result = schema.execute(
-        """
-      query {
-        listDepartments {
-          id,
-          name,
-          employees {
-            ...on Employee {
-              id
-              name
-              hiredOn
-              salary { rating }
+    query = """
+        query {
+            listDepartments {
+                id,
+                name,
+                employees {
+                    ...on Employee {
+                    id
+                    name
+                    hiredOn
+                    salary { rating }
+                }
+                ...on Manager {
+                    name
+                    salary {
+                        rating
+                        amount
+                    }
+                    teamSize
+                }
             }
-            ...on Manager {
-              name
-              salary {
-                rating
-                amount
-              }
-              teamSize
-            }
-          }
         }
-      }
-""",
-        executor=SyncExecutor(),
-        return_promise=False,
-    )
+    }
+    """
+    result = schema.execute(query)
 
     print(result.errors)
     print(json.dumps(result.data, indent=2))

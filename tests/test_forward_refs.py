@@ -77,34 +77,29 @@ class Query(graphene.ObjectType):
 
 
 def test_query():
-    from graphql.execution.executors.sync import SyncExecutor
-
     schema = graphene.Schema(query=Query)
-    result = schema.execute(
-        """
-      query {
-        listFoos {
-          id
-          name
-          bar {
-            id
-            name
-            foo {
-              id
-              baz {
+    query = """
+        query {
+            listFoos {
+                id
                 name
-                bar { id }
-              }
+                bar {
+                    id
+                    name
+                    foo {
+                        id
+                        baz {
+                            name
+                            bar { id }
+                        }
+                    }
+                }
+                baz { name }
+                someBars { id }
             }
-          }
-          baz { name }
-          someBars { id }
         }
-    }
-    """,
-        executor=SyncExecutor(),
-        return_promise=False,
-    )
+    """
+    result = schema.execute(query)
 
     assert result.errors is None
     assert result.data is not None
