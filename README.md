@@ -110,6 +110,24 @@ result = schema.execute(mutation)
 print(result.data['createPerson']['firstName'])
 ```
 
+### Custom resolve functions
+
+Since `PydanticObjectType` inherits from `graphene.ObjectType` you can add custom resolve functions as explained [here](https://docs.graphene-python.org/en/stable/api/#object-types). For instance:
+
+```python
+class Person(PydanticObjectType):
+    class Meta:
+        model = PersonModel
+        # exclude specified fields
+        exclude_fields = ("id",)
+        
+    full_name = graphene.String()
+
+    def resolve_full_name(self, info, **kwargs):
+        return self.first_name + ' ' + self.last_name
+```
+
+
 ### Forward declarations and circular references
 
 `graphene_pydantic` supports forward declarations and circular references, but you will need to call the `resolve_placeholders()` method to ensure the types are fully updated before you execute a GraphQL query. For instance:
