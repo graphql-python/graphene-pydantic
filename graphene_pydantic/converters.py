@@ -266,6 +266,10 @@ def convert_generic_python_type(
         return convert_union_type(
             type_, field, registry, parent_type=parent_type, model=model
         )
+    elif origin == T.Literal:
+        return convert_literal_type(
+            type_, field, registry, parent_type=parent_type, model=model
+        )
     elif (
         origin
         in (
@@ -330,5 +334,39 @@ def convert_union_type(
 
     union_cls = type(
         construct_union_class_name(inner_types), (Union,), {"Meta": internal_meta_cls}
+    )
+    return union_cls
+
+def convert_literal_type(
+    type_: T.Type,
+    field: ModelField,
+    registry: Registry,
+    parent_type: T.Type = None,
+    model: T.Type[BaseModel] = None,
+):
+    """
+    Convert an annotated Python Literal type into a Graphene Scalar or Union of Scalars.
+    """
+    inner_types = type_.__args__
+    # Here we'll expand the subtypes of this Literal into a corresponding more
+    # general scalar type.
+    scalar_types = {
+        type(x)
+        for x in inner_types
+        if x != NONE_TYPE
+    }
+    graphene_scalar_types = [
+        convert_pydantic_type(x, field, registry, parent_type=parent_type, model=model)
+        for x in scalar_types
+    ]
+
+    # If we only have a single type, we don't need to create a union.
+    if len(graphene_scalar_types) == 1:
+        return graphene_scalar_types[0]
+
+    internal_meta_cls = type("Meta", (), {"types": graphene_scalar_types})
+
+    union_cls = type(
+        construct_union_class_name(scalar_types), (Union,), {"Meta": internal_meta_cls}
     )
     return union_cls
