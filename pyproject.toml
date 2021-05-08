@@ -14,6 +14,8 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 keywords = ["api", "graphql", "protocol", "rest", "relay", "graphene", "pydantic", "model"]
@@ -36,5 +38,5 @@ tox-gh-actions = "^1.3.0"
 dataclasses = { version = "^0.6", python = "^3.6.1, <3.7" }
 
 [build-system]
-requires = ["poetry>=0.12"]
+requires = ["poetry>=1.0"]
 build-backend = "poetry.masonry.api"
