@@ -266,7 +266,7 @@ def convert_generic_python_type(
         return convert_union_type(
             type_, field, registry, parent_type=parent_type, model=model
         )
-    elif origin == T.Literal:
+    elif hasattr(T, "Literal") and origin == T.Literal:
         return convert_literal_type(
             type_, field, registry, parent_type=parent_type, model=model
         )
