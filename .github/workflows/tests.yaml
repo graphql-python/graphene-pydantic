@@ -22,13 +22,13 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Install
-      uses: abatilo/actions-poetry@v2
+      uses: abatilo/actions-poetry@v2.1
       with:
         python_version: ${{ matrix.python-version }}
         poetry_version: 1.1
         args: install
     - name: Run matrix of tests with Tox
-      uses: abatilo/actions-poetry@v2
+      uses: abatilo/actions-poetry@v2.1
       with:
         python_version: ${{ matrix.python-version }}
         poetry_version: 1.1
