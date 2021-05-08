@@ -337,6 +337,7 @@ def convert_union_type(
     )
     return union_cls
 
+
 def convert_literal_type(
     type_: T.Type,
     field: ModelField,
