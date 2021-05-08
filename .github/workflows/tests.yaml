@@ -21,15 +21,12 @@ jobs:
         os: [ubuntu-20.04, macos-latest, windows-latest]
     steps:
     - uses: actions/checkout@master
-    - name: Install
-      uses: abatilo/actions-poetry@v2.1.2
+    - uses: actions/setup-python@v2
       with:
-        python_version: ${{ matrix.python-version }}
-        poetry_version: 1.1
-        args: install
+        python-version: ${{ matrix.python-version }}
+    - name: Ensure poetry
+      uses: abatilo/actions-poetry@v2.1.2
+    - name: Install dependencies
+      run: poetry install
     - name: Run matrix of tests with Tox
-      uses: abatilo/actions-poetry@v2.1.2
-      with:
-        python_version: ${{ matrix.python-version }}
-        poetry_version: 1.1
-        args: run tox
+      run: poetry run tox
