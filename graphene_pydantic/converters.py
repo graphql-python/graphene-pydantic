@@ -351,11 +351,7 @@ def convert_literal_type(
     inner_types = type_.__args__
     # Here we'll expand the subtypes of this Literal into a corresponding more
     # general scalar type.
-    scalar_types = {
-        type(x)
-        for x in inner_types
-        if x != NONE_TYPE
-    }
+    scalar_types = {type(x) for x in inner_types if x != NONE_TYPE}
     graphene_scalar_types = [
         convert_pydantic_type(x, field, registry, parent_type=parent_type, model=model)
         for x in scalar_types
@@ -368,6 +364,10 @@ def convert_literal_type(
     internal_meta_cls = type("Meta", (), {"types": graphene_scalar_types})
 
     union_cls = type(
-        construct_union_class_name(scalar_types), (Union,), {"Meta": internal_meta_cls}
+        construct_union_class_name(
+            sorted(scalar_types, key=lambda x: x.__class__.__name__)
+        ),
+        (Union,),
+        {"Meta": internal_meta_cls},
     )
     return union_cls
