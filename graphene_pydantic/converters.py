@@ -126,7 +126,7 @@ def convert_pydantic_field(
     """
     declared_type = getattr(field, "type_", None)
     field_kwargs.setdefault(
-        "type_",
+        "type",
         convert_pydantic_type(
             declared_type, field, registry, parent_type=parent_type, model=model
         ),
