@@ -86,6 +86,8 @@ class PydanticObjectType(graphene.ObjectType):
         if not registry:
             registry = get_global_registry(PydanticObjectType)
 
+        cls.__doc__ = model.__doc__
+        
         pydantic_fields = yank_fields_from_attrs(
             construct_fields(
                 obj_type=cls,
