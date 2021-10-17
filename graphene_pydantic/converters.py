@@ -208,9 +208,7 @@ def find_graphene_type(
         # we can put a placeholder in and request that `resolve_placeholders()`
         # be called to update it.
         registry.add_placeholder_for_model(type_)
-        return find_graphene_type(
-            type_, field, registry, parent_type=parent_type, model=model
-        )
+        return registry.get_type_for_model(type_)
     # NOTE: this has to come before any `issubclass()` checks, because annotated
     # generic types aren't valid arguments to `issubclass`
     elif hasattr(type_, "__origin__"):
