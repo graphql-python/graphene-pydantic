@@ -31,4 +31,4 @@ jobs:
       - name: Run matrix of tests with Tox
         run: poetry run tox -vvv
       - name: Run pytest just in case Tox no worky
-        run: pytest -v tests/ --cov-report=term-missing --cov=graphene_pydantic
+        run: poetry run pytest -v tests/ --cov-report=term-missing --cov=graphene_pydantic
