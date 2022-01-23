@@ -24,6 +24,7 @@ from graphene.types.base import BaseType
 from graphene.types.datetime import Date, DateTime, Time
 from pydantic import BaseModel
 from pydantic.fields import ModelField
+from pydantic.typing import evaluate_forwardref
 
 from .registry import Registry
 from .util import construct_union_class_name
@@ -227,7 +228,7 @@ def find_graphene_type(
                 "See the README for more on forward references."
             )
         module_ns = sys.modules[sibling.__module__].__dict__
-        resolved = type_._evaluate(module_ns, None)
+        resolved = evaluate_forwardref(type_, module_ns, None)
         # TODO: make this behavior optional. maybe this is a place for the TypeOptions to play a role?
         if registry:
             registry.add_placeholder_for_model(resolved)
