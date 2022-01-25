@@ -24,36 +24,28 @@ from graphene.types.base import BaseType
 from graphene.types.datetime import Date, DateTime, Time
 from pydantic import BaseModel
 from pydantic.fields import ModelField
+from pydantic.typing import evaluate_forwardref
 
 from .registry import Registry
 from .util import construct_union_class_name
 
-try:
-    # Pydantic pre-1.0
-    from pydantic.fields import Shape
+from pydantic import fields
 
-    SHAPE_SINGLETON = (Shape.SINGLETON,)
-    SHAPE_SEQUENTIAL = (
-        Shape.LIST,
-        Shape.TUPLE,
-        Shape.TUPLE_ELLIPS,
-        Shape.SEQUENCE,
-        Shape.SET,
-    )
-    SHAPE_MAPPING = (Shape.MAPPING,)
-except ImportError:
-    # Pydantic 1.0+
-    from pydantic import fields
+SHAPE_SINGLETON = (fields.SHAPE_SINGLETON,)
+SHAPE_SEQUENTIAL = (
+    fields.SHAPE_LIST,
+    fields.SHAPE_TUPLE,
+    fields.SHAPE_TUPLE_ELLIPSIS,
+    fields.SHAPE_SEQUENCE,
+    fields.SHAPE_SET,
+)
 
-    SHAPE_SINGLETON = (fields.SHAPE_SINGLETON,)
-    SHAPE_SEQUENTIAL = (
-        fields.SHAPE_LIST,
-        fields.SHAPE_TUPLE,
-        fields.SHAPE_TUPLE_ELLIPSIS,
-        fields.SHAPE_SEQUENCE,
-        fields.SHAPE_SET,
+if hasattr(fields, "SHAPE_DICT"):
+    SHAPE_MAPPING = T.cast(
+        T.Tuple, (fields.SHAPE_MAPPING, fields.SHAPE_DICT, fields.SHAPE_DEFAULTDICT)
     )
-    SHAPE_MAPPING = (fields.SHAPE_MAPPING,)
+else:
+    SHAPE_MAPPING = T.cast(T.Tuple, (fields.SHAPE_MAPPING,))
 
 
 try:
@@ -138,6 +130,10 @@ def convert_pydantic_field(
     #   from the field's base model
     # - maybe even (Sphinx-style) parse attribute documentation
     field_kwargs.setdefault("description", field.field_info.description)
+
+    # Somehow, this happens
+    if "type_" not in field_kwargs and "type" in field_kwargs:
+        field_kwargs["type_"] = field_kwargs.pop("type")
 
     return Field(resolver=get_attr_resolver(field.name), **field_kwargs)
 
@@ -228,7 +224,7 @@ def find_graphene_type(
                 "See the README for more on forward references."
             )
         module_ns = sys.modules[sibling.__module__].__dict__
-        resolved = type_._evaluate(module_ns, None)
+        resolved = evaluate_forwardref(type_, module_ns, None)
         # TODO: make this behavior optional. maybe this is a place for the TypeOptions to play a role?
         if registry:
             registry.add_placeholder_for_model(resolved)
@@ -267,7 +263,7 @@ def convert_generic_python_type(
         return convert_union_type(
             type_, field, registry, parent_type=parent_type, model=model
         )
-    elif origin == T.Literal:
+    elif hasattr(T, "Literal") and origin == T.Literal:
         return convert_literal_type(
             type_, field, registry, parent_type=parent_type, model=model
         )
@@ -338,6 +334,7 @@ def convert_union_type(
     )
     return union_cls
 
+
 def convert_literal_type(
     type_: T.Type,
     field: ModelField,
@@ -351,11 +348,7 @@ def convert_literal_type(
     inner_types = type_.__args__
     # Here we'll expand the subtypes of this Literal into a corresponding more
     # general scalar type.
-    scalar_types = {
-        type(x)
-        for x in inner_types
-        if x != NONE_TYPE
-    }
+    scalar_types = {type(x) for x in inner_types if x != NONE_TYPE}
     graphene_scalar_types = [
         convert_pydantic_type(x, field, registry, parent_type=parent_type, model=model)
         for x in scalar_types
@@ -368,6 +361,10 @@ def convert_literal_type(
     internal_meta_cls = type("Meta", (), {"types": graphene_scalar_types})
 
     union_cls = type(
-        construct_union_class_name(scalar_types), (Union,), {"Meta": internal_meta_cls}
+        construct_union_class_name(
+            sorted(scalar_types, key=lambda x: x.__class__.__name__)
+        ),
+        (Union,),
+        {"Meta": internal_meta_cls},
     )
     return union_cls

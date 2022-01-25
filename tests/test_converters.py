@@ -1,3 +1,4 @@
+import sys
 import datetime
 import decimal
 import enum
@@ -74,18 +75,23 @@ def test_union():
     assert field.default_value == 5.0
     assert field.type.__name__.startswith("UnionOf")
 
-def test_literal():
-    field = _convert_field_from_spec("attr", (T.Literal['literal1', 'literal2', 3], 3))
-    assert issubclass(field.type, graphene.Union)
-    assert field.default_value == 3
-    assert field.type.__name__.startswith("UnionOf")
 
+if sys.version_info >= (3, 8):
+    # Python < 3.8 does not support typing.Literal
 
-def test_literal_singleton():
-    field = _convert_field_from_spec("attr", (T.Literal['literal1'], 'literal1'))
-    assert issubclass(field.type, graphene.String)
-    assert field.default_value == 'literal1'
-    assert field.type == graphene.String
+    def test_literal():
+        field = _convert_field_from_spec(
+            "attr", (T.Literal["literal1", "literal2", 3], 3)
+        )
+        assert issubclass(field.type, graphene.Union)
+        assert field.default_value == 3
+        assert field.type.__name__.startswith("UnionOf")
+
+    def test_literal_singleton():
+        field = _convert_field_from_spec("attr", (T.Literal["literal1"], "literal1"))
+        assert issubclass(field.type, graphene.String)
+        assert field.default_value == "literal1"
+        assert field.type == graphene.String
 
 
 def test_mapping():
@@ -161,8 +167,6 @@ def test_unresolved_placeholders():
         isinstance(x, Placeholder)
         for x in get_global_registry(PydanticObjectType)._registry.values()
     )
-    # this is a runtime error waiting to happen, but what can we do about it?
-    assert field.type is None
 
 
 def test_self_referencing():
