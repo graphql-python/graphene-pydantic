@@ -131,6 +131,10 @@ def convert_pydantic_field(
     # - maybe even (Sphinx-style) parse attribute documentation
     field_kwargs.setdefault("description", field.field_info.description)
 
+    # Somehow, this happens
+    if "type_" not in field_kwargs and "type" in field_kwargs:
+        field_kwargs["type_"] = field_kwargs.pop("type")
+
     return Field(resolver=get_attr_resolver(field.name), **field_kwargs)
 
 
