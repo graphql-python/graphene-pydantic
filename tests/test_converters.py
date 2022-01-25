@@ -76,7 +76,7 @@ def test_union():
     assert field.type.__name__.startswith("UnionOf")
 
 
-if sys.version_info > (3, 7):
+if sys.version_info >= (3, 8):
     # Python < 3.8 does not support typing.Literal
 
     def test_literal():
