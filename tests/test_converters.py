@@ -162,8 +162,6 @@ def test_unresolved_placeholders():
         isinstance(x, Placeholder)
         for x in get_global_registry(PydanticObjectType)._registry.values()
     )
-    # this is a runtime error waiting to happen, but what can we do about it?
-    assert field.type is None
 
 
 def test_self_referencing():
