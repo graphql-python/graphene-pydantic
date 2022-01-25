@@ -29,32 +29,23 @@ from pydantic.typing import evaluate_forwardref
 from .registry import Registry
 from .util import construct_union_class_name
 
-try:
-    # Pydantic pre-1.0
-    from pydantic.fields import Shape
+from pydantic import fields
 
-    SHAPE_SINGLETON = (Shape.SINGLETON,)
-    SHAPE_SEQUENTIAL = (
-        Shape.LIST,
-        Shape.TUPLE,
-        Shape.TUPLE_ELLIPS,
-        Shape.SEQUENCE,
-        Shape.SET,
-    )
-    SHAPE_MAPPING = (Shape.MAPPING,)
-except ImportError:
-    # Pydantic 1.0+
-    from pydantic import fields
+SHAPE_SINGLETON = (fields.SHAPE_SINGLETON,)
+SHAPE_SEQUENTIAL = (
+    fields.SHAPE_LIST,
+    fields.SHAPE_TUPLE,
+    fields.SHAPE_TUPLE_ELLIPSIS,
+    fields.SHAPE_SEQUENCE,
+    fields.SHAPE_SET,
+)
 
-    SHAPE_SINGLETON = (fields.SHAPE_SINGLETON,)
-    SHAPE_SEQUENTIAL = (
-        fields.SHAPE_LIST,
-        fields.SHAPE_TUPLE,
-        fields.SHAPE_TUPLE_ELLIPSIS,
-        fields.SHAPE_SEQUENCE,
-        fields.SHAPE_SET,
+if hasattr(fields, "SHAPE_DICT"):
+    SHAPE_MAPPING = T.cast(
+        T.Tuple, (fields.SHAPE_MAPPING, fields.SHAPE_DICT, fields.SHAPE_DEFAULTDICT)
     )
-    SHAPE_MAPPING = (fields.SHAPE_MAPPING,)
+else:
+    SHAPE_MAPPING = T.cast(T.Tuple, (fields.SHAPE_MAPPING,))
 
 
 try:
