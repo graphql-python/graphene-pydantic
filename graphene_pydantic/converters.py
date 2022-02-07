@@ -130,10 +130,11 @@ def convert_pydantic_field(
     #   from the field's base model
     # - maybe even (Sphinx-style) parse attribute documentation
     field_kwargs.setdefault("description", field.field_info.description)
-    
-    field_type = field_kwargs.pop("type")
-    if "type_" in field_kwargs:
-        field_type = field_kwargs.pop("type_")
+
+    # Handle Graphene 2 and 3
+    field_type = field_kwargs.pop("type", field_kwargs.pop("type_", None))
+    if field_type is None:
+        raise ValueError("No field type could be determined.")
 
     return Field(field_type, resolver=get_attr_resolver(field.name), **field_kwargs)
 

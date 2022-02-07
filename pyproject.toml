@@ -24,7 +24,7 @@ keywords = ["api", "graphql", "protocol", "rest", "relay", "graphene", "pydantic
 [tool.poetry.dependencies]
 python = "^3.7"
 # To keep things simple, we only support newer versions of Graphene & Pydantic
-graphene = "~=3.0"
+graphene = ">=2.1.8"
 pydantic = [
     { version = ">=1.0,<2.0", python = ">3.6,<3.10" },
     { version = ">=1.9,<2.0", python = "~3.10" }
