@@ -233,8 +233,24 @@ def find_graphene_type(
         )
     elif issubclass(type_, enum.Enum):
         return Enum.from_enum(type_)
-    elif issubclass(type_, str):
+    elif issubclass(type_, (str, bytes)):
         return String
+    elif issubclass(type_, datetime.datetime):
+        return DateTime
+    elif issubclass(type_, datetime.date):
+        return Date
+    elif issubclass(type_, datetime.time):
+        return Time
+    elif issubclass(type_, bool):
+        return Boolean
+    elif issubclass(type_, float):
+        return Float
+    elif issubclass(type_, decimal.Decimal):
+        return GrapheneDecimal if DECIMAL_SUPPORTED else Float
+    elif issubclass(type_, int):
+        return Int
+    elif issubclass(type_, (tuple, list, set)):
+        return List
     else:
         raise ConversionError(
             f"Don't know how to convert the Pydantic field {field!r} ({field.type_})"
