@@ -15,6 +15,7 @@ from graphene import (
     Field,
     Float,
     InputField,
+    Int,
     List,
     String,
     Union,
@@ -25,7 +26,6 @@ from pydantic import BaseModel
 from pydantic.fields import ModelField
 from pydantic.typing import evaluate_forwardref
 
-from .fields import IntNullable
 from .registry import Registry
 from .util import construct_union_class_name
 
@@ -191,7 +191,7 @@ def find_graphene_type(
     elif type_ == decimal.Decimal:
         return GrapheneDecimal if DECIMAL_SUPPORTED else Float
     elif type_ == int:
-        return IntNullable
+        return Int
     elif type_ in (tuple, list, set):
         # TODO: do Sets really belong here?
         return List
