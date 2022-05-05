@@ -1,4 +1,4 @@
-from graphene import Schema as GraheneSchema
+from graphene import Schema as GrapheneSchema
 from graphene.types.schema import normalize_execute_kwargs
 from graphql import (
     GraphQLList,
@@ -13,7 +13,7 @@ from graphql import (
 from graphql.language import parse
 
 
-class Schema(GraheneSchema):
+class Schema(GrapheneSchema):
     def execute(self, *args, **kwargs):
         kwargs = normalize_execute_kwargs(kwargs)
         var_types = self.override_input_fields(args, kwargs)
