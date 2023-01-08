@@ -182,24 +182,24 @@ import typing
 from graphene_pydantic import PydanticObjectType
 
 class Pet:
-  pass
+    pass
 
 class Person:
-  name: str
-  pets_by_name: typing.Dict[str, Pet]
+    name: str
+    pets_by_name: typing.Dict[str, Pet]
 
 class GraphQLPerson(PydanticObjectType):
-  class Meta:
-    model = Person
+    class Meta:
+        model = Person
 ```
 
 However, note that if you use `exclude_fields` or `only_fields` to exclude those values, there won't be a problem:
 
 ``` python
 class GraphQLPerson(PydanticObjectType):
-  class Meta:
-    model = Person
-    exclude_fields = ("pets_by_name",)
+    class Meta:
+        model = Person
+        exclude_fields = ("pets_by_name",)
 ```
 
 #### Union types
