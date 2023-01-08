@@ -120,7 +120,7 @@ class Person(PydanticObjectType):
         model = PersonModel
         # exclude specified fields
         exclude_fields = ("id",)
-        
+
     full_name = graphene.String()
 
     def resolve_full_name(self, info, **kwargs):
@@ -137,19 +137,19 @@ class NodeModel(BaseModel):
     id: int
     name: str
     labels: 'LabelsModel'
-    
+
 class LabelsModel(BaseModel):
     node: NodeModel
     labels: typing.List[str]
-    
+
 class Node(PydanticObjectType):
     class Meta:
         model = NodeModel
-        
+
 class Labels(PydanticObjectType):
     class Meta:
         model = LabelsModel
-        
+
 
 Node.resolve_placeholders()  # make the `labels` field work
 Labels.resolve_placeholders()  # make the `node` field work
@@ -157,7 +157,7 @@ Labels.resolve_placeholders()  # make the `node` field work
 
 ### Full Examples
 
-Please see [the examples directory](./examples) for more. 
+Please see [the examples directory](./examples) for more.
 
 ### License
 
@@ -175,7 +175,7 @@ Please see the [Contributing Guide](./CONTRIBUTING.md). Note that you must sign 
 
 #### Mappings
 
-Note that even though Pydantic is perfectly happy with fields that hold mappings (e.g. dictionaries), because [GraphQL's type system doesn't have them](https://graphql.org/learn/schema/) those fields can't be exported to Graphene types. For instance, this will fail with an error `Don't know how to handle mappings in Graphene`: 
+Note that even though Pydantic is perfectly happy with fields that hold mappings (e.g. dictionaries), because [GraphQL's type system doesn't have them](https://graphql.org/learn/schema/) those fields can't be exported to Graphene types. For instance, this will fail with an error `Don't know how to handle mappings in Graphene`:
 
 ``` python
 import typing
@@ -187,8 +187,8 @@ class Pet:
 class Person:
   name: str
   pets_by_name: typing.Dict[str, Pet]
-  
-class GraphQLPerson(PydanticObjectType):  
+
+class GraphQLPerson(PydanticObjectType):
   class Meta:
     model = Person
 ```
