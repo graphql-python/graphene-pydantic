@@ -125,6 +125,7 @@ def convert_pydantic_field(
     )
     field_kwargs.setdefault("required", field.required)
     field_kwargs.setdefault("default_value", field.default)
+    field_kwargs.setdefault("name", field.alias)
     # TODO: find a better way to get a field's description. Some ideas include:
     # - hunt down the description from the field's schema, or the schema
     #   from the field's base model
