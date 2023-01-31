@@ -123,7 +123,7 @@ def convert_pydantic_field(
             declared_type, field, registry, parent_type=parent_type, model=model
         ),
     )
-    field_kwargs.setdefault("required", field.required)
+    field_kwargs.setdefault("required", not field.allow_none)
     field_kwargs.setdefault("default_value", field.default)
     # TODO: find a better way to get a field's description. Some ideas include:
     # - hunt down the description from the field's schema, or the schema
