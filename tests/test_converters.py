@@ -48,6 +48,15 @@ def test_default_values():
     assert field.type == graphene.String
     assert field.default_value == "hi"
 
+class DatetimeSubclass(datetime.datetime):
+    pass
+
+class TimeSubclass(datetime.time):
+    pass
+
+class DateSubclass(datetime.date):
+    pass
+
 
 @pytest.mark.parametrize(
     "input, expected",
@@ -60,6 +69,10 @@ def test_default_values():
         ((datetime.date, datetime.date(2019, 1, 1)), graphene.Date),
         ((datetime.time, datetime.time(15, 29)), graphene.Time),
         ((datetime.datetime, datetime.datetime(2019, 1, 1, 1, 37)), graphene.DateTime),
+        # Tests support for datetime mocking libraries like Freezegun
+        ((DatetimeSubclass, DatetimeSubclass(2019, 1, 1, 1, 37)), graphene.DateTime),
+        ((DateSubclass, DateSubclass(2019, 1, 1)), graphene.Date),
+        ((TimeSubclass, TimeSubclass(15, 29)), graphene.Time),
     ],
 )
 def test_builtin_scalars(input, expected):
