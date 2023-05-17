@@ -174,25 +174,25 @@ def find_graphene_type(
     Map a native Python type to a Graphene-supported Field type, where possible,
     throwing an error if we don't know what to map it to.
     """
-    if issubclass(type_, uuid.UUID):
+    if type_ == uuid.UUID:
         return UUID
-    elif issubclass(type_, str) or issubclass(type_, bytes):
+    elif type_ in (str, bytes):
         return String
-    elif issubclass(type_, datetime.datetime):
+    elif type_ == datetime.datetime:
         return DateTime
-    elif issubclass(type_, datetime.date):
+    elif type_ == datetime.date:
         return Date
-    elif issubclass(type_, datetime.time):
+    elif type_ == datetime.time:
         return Time
-    elif issubclass(type_, bool):
+    elif type_ == bool:
         return Boolean
-    elif issubclass(type_, float):
+    elif type_ == float:
         return Float
-    elif issubclass(type_, decimal.Decimal):
+    elif type_ == decimal.Decimal:
         return GrapheneDecimal if DECIMAL_SUPPORTED else Float
-    elif issubclass(type_, int):
+    elif type_ == int:
         return Int
-    elif issubclass(type_, tuple) or issubclass(type_, list) or issubclass(type_, set):
+    elif type_ in (tuple, list, set):
         # TODO: do Sets really belong here?
         return List
     elif registry and registry.get_type_for_model(type_):
