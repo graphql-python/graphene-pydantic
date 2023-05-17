@@ -49,6 +49,10 @@ def test_default_values():
     assert field.default_value == "hi"
 
 
+class DatetimeSubclass(datetime.datetime):
+    """This is a subclass of the datetime class"""
+
+
 @pytest.mark.parametrize(
     "input, expected",
     [
@@ -60,6 +64,8 @@ def test_default_values():
         ((datetime.date, datetime.date(2019, 1, 1)), graphene.Date),
         ((datetime.time, datetime.time(15, 29)), graphene.Time),
         ((datetime.datetime, datetime.datetime(2019, 1, 1, 1, 37)), graphene.DateTime),
+        # Tests support for datetime mocking libraries like Freezegun
+        ((datetime.datetime, DatetimeSubclass(2019, 1, 1, 1, 37)), graphene.DateTime),
     ],
 )
 def test_builtin_scalars(input, expected):
