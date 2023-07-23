@@ -1,18 +1,18 @@
 default_language_version:
-    python: python3.8
+  python: python3.10
 fail_fast: true
 repos:
   - repo: git://github.com/pre-commit/pre-commit-hooks
     rev: v2.1.0
     hooks:
-    - id: check-merge-conflict
-    - id: check-yaml
-    - id: debug-statements
-    - id: end-of-file-fixer
-      exclude: ^docs/.*$
-    - id: trailing-whitespace
-      exclude: README.md
-    - id: flake8
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: debug-statements
+      - id: end-of-file-fixer
+        exclude: ^docs/.*$
+      - id: trailing-whitespace
+        exclude: README.md
+      - id: flake8
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.812
     hooks:
