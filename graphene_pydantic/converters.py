@@ -135,9 +135,16 @@ def convert_pydantic_field(
     field_type = field_kwargs.pop("type", field_kwargs.pop("type_", None))
     if field_type is None:
         raise ValueError("No field type could be determined.")
+        
+    resolver_function = getattr(parent_type,
+                                "resolve_" + field.name,
+                                None)
+    if resolver_function and callable(resolver_function):
+        field_resolver = resolver_function
+    else:
+        field_resolver = get_attr_resolver(field.name)
 
-    return Field(field_type, resolver=get_attr_resolver(field.name), **field_kwargs)
-
+    return Field(field_type, resolver=field_resolver, **field_kwargs)
 
 def convert_pydantic_type(
     type_: T.Type,
