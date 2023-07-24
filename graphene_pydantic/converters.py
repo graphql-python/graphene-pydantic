@@ -236,6 +236,12 @@ def find_graphene_type(
         return Enum.from_enum(type_)
     elif issubclass(type_, str):
         return String
+    elif issubclass(type_, datetime.datetime):
+        return DateTime
+    elif issubclass(type_, datetime.date):
+        return Date
+    elif issubclass(type_, datetime.time):
+        return Time
     else:
         raise ConversionError(
             f"Don't know how to convert the Pydantic field {field!r} ({field.type_})"
