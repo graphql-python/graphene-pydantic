@@ -1,17 +1,26 @@
 # Contributing Guide
 
 You will need:
-- Python 3.6 or higher
+- Python 3.7 or higher
 
 ## Getting started
 
-To get your development environment set up, run:
+To get your development environment set up, create and activate a virtual
+environment, and install poetry:
 
-```sh
-pip install -e .[dev]
+```
+pipx install poetry
+# or with conda
+conda install poetry
 ```
 
-in an activated virtual environment. This will install the repo version of
+Then install dependencies with poetry:
+
+```sh
+poetry install
+```
+
+This will install the repo version of
 `graphene-pydantic` and then install the development dependencies. Once that
 has completed, you can start developing.
 
