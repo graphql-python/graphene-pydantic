@@ -87,6 +87,11 @@ if sys.version_info >= (3, 8):
         assert field.default_value == 3
         assert field.type.of_type.__name__.startswith("UnionOf")
 
+
+if sys.version_info >= (3, 10):
+    # Python < 3.10 does not support typing.Literal except as a
+    # _SpecialGenericAlias, which Pydantic doesn't like
+
     def test_literal_singleton():
         field = _convert_field_from_spec("attr", (T.Literal["literal1"], "literal1"))
         assert issubclass(field.type.of_type, graphene.String)
