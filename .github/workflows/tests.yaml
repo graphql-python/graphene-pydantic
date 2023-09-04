@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@master
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.10
+          python-version: "3.11"
       - uses: pre-commit/action@v2
   tests:
     name: pytest
@@ -26,6 +26,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Ensure poetry
         uses: abatilo/actions-poetry@v2
-      - uses: wntrblm/nox
+      - uses: wntrblm/nox@2023.04.22
       - name: Run matrix of tests
         run: nox
