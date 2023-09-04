@@ -29,4 +29,4 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: abatilo/actions-poetry@v2
       - run: poetry install
-      - run: poetry run nox -r --non-interactive --python=python
+      - run: poetry run nox --non-interactive
