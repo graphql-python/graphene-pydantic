@@ -138,15 +138,14 @@ def convert_pydantic_field(
     if field_type is None:
         raise ValueError("No field type could be determined.")
 
-    resolver_function = getattr(parent_type,
-                                "resolve_" + field.name,
-                                None)
+    resolver_function = getattr(parent_type, "resolve_" + field.name, None)
     if resolver_function and callable(resolver_function):
         field_resolver = resolver_function
     else:
         field_resolver = get_attr_resolver(field.name)
 
     return Field(field_type, resolver=field_resolver, **field_kwargs)
+
 
 def convert_pydantic_type(
     type_: T.Type,
@@ -293,19 +292,15 @@ def convert_generic_python_type(
         return convert_literal_type(
             type_, field, registry, parent_type=parent_type, model=model
         )
-    elif (
-        origin
-        in (
-            T.Tuple,
-            T.List,
-            T.Set,
-            T.Collection,
-            T.Iterable,
-            list,
-            set,
-        )
-        or issubclass(origin, collections.abc.Sequence)
-    ):
+    elif origin in (
+        T.Tuple,
+        T.List,
+        T.Set,
+        T.Collection,
+        T.Iterable,
+        list,
+        set,
+    ) or issubclass(origin, collections.abc.Sequence):
         # TODO: find a better way of divining that the origin is sequence-like
         inner_types = getattr(type_, "__args__", [])
         if not inner_types:  # pragma: no cover  # this really should be impossible
