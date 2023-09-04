@@ -6,11 +6,11 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v3
       with:
         python-version: 3.8
-    - uses: pre-commit/action@v2.0.0
+    - uses: pre-commit/action@v3.0.0
   pytest:
     name: pytest
     runs-on: ubuntu-latest
