@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: "3.11"
-      - uses: pre-commit/action@v2
+      - uses: pre-commit/action@v3.0.0
   tests:
     name: pytest
     runs-on: ubuntu-latest
