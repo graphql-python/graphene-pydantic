@@ -31,4 +31,4 @@ jobs:
         uses: abatilo/actions-poetry@v2
       - uses: wntrblm/nox@2023.04.22
       - name: Run matrix of tests
-        run: nox
+        run: nox --no-venv --non-interactive --python ${{ matrix.python-version }}
