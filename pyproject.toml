@@ -35,7 +35,7 @@ pytest = "~6.2"
 pytest-cov = "~2.7.1"
 mypy = "^1.4.1"
 black = "23.3"
-pre-commit = "~1.17.0"
+pre-commit = "^2.9.2"
 nox = "^2023.4.22"
 
 [build-system]
