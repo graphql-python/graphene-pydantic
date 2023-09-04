@@ -36,6 +36,7 @@ pytest-cov = "~2.7.1"
 mypy = "^1.4.1"
 black = "23.3"
 pre-commit = "~1.17.0"
+nox = "^2023.4.22"
 
 [build-system]
 requires = ["poetry>=1.5"]
