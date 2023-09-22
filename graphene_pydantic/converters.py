@@ -20,6 +20,7 @@ from graphene import (
     String,
     Union,
 )
+import graphene
 from graphene.types.base import BaseType
 from graphene.types.datetime import Date, DateTime, Time
 from pydantic import BaseModel
@@ -30,6 +31,8 @@ from .registry import Registry
 from .util import construct_union_class_name
 
 from pydantic import fields
+
+GRAPHENE2 = graphene.VERSION[0] < 3
 
 SHAPE_SINGLETON = (fields.SHAPE_SINGLETON,)
 SHAPE_SEQUENTIAL = (
@@ -89,7 +92,7 @@ def convert_pydantic_input_field(
     """
     declared_type = getattr(field, "type_", None)
     field_kwargs.setdefault(
-        "type_",
+        "type" if GRAPHENE2 else "type_",
         convert_pydantic_type(
             declared_type, field, registry, parent_type=parent_type, model=model
         ),
@@ -118,7 +121,7 @@ def convert_pydantic_field(
     """
     declared_type = getattr(field, "type_", None)
     field_kwargs.setdefault(
-        "type",
+        "type" if GRAPHENE2 else "type_",
         convert_pydantic_type(
             declared_type, field, registry, parent_type=parent_type, model=model
         ),
