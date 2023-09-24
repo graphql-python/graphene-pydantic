@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graphene_pydantic"
-version = "0.4.1"
+version = "0.4.2"
 description = "Graphene Pydantic integration"
 readme = "README.md"
 repository = "https://github.com/graphql-python/graphene-pydantic"
@@ -25,7 +25,7 @@ keywords = ["api", "graphql", "protocol", "rest", "relay", "graphene", "pydantic
 
 [tool.poetry.dependencies]
 python = "^3.7"
-graphene = ">=3.0"
+graphene = ">=2.1.8"
 pydantic = [
     { version = ">=1.0,<2.0", python = ">3.6,<3.12" },
     { version = ">=1.9,<2.0", python = ">=3.10" }
