@@ -19,11 +19,11 @@ class PydanticInputObjectTypeOptions(InputObjectTypeOptions):
 
 
 def construct_fields(
-    obj_type: T.Type["PydanticInputObjectType"],
-    model: T.Type[pydantic.BaseModel],
-    registry: Registry,
-    only_fields: T.Tuple[str, ...],
-    exclude_fields: T.Tuple[str, ...],
+        obj_type: T.Type["PydanticInputObjectType"],
+        model: T.Type[pydantic.BaseModel],
+        registry: Registry,
+        only_fields: T.Tuple[str, ...],
+        exclude_fields: T.Tuple[str, ...],
 ) -> T.Dict[str, InputField]:
     """
     Construct all the fields for a PydanticInputObjectType.
@@ -36,10 +36,10 @@ def construct_fields(
     if exclude_fields:
         excluded = exclude_fields
     elif only_fields:
-        excluded = tuple(k for k in model.__fields__ if k not in only_fields)
+        excluded = tuple(k for k in model.model_fields if k not in only_fields)
 
     fields_to_convert = (
-        (k, v) for k, v in model.__fields__.items() if k not in excluded
+        (k, v) for k, v in model.model_fields.items() if k not in excluded
     )
 
     fields = {}
@@ -60,15 +60,15 @@ class PydanticInputObjectType(graphene.InputObjectType):
 
     @classmethod
     def __init_subclass_with_meta__(
-        cls,
-        model: type = None,
-        registry: Registry = None,
-        skip_registry: bool = False,
-        only_fields: T.Tuple[str, ...] = (),
-        exclude_fields: T.Tuple[str, ...] = (),
-        id=None,
-        _meta=None,
-        **options,
+            cls,
+            model: type = None,
+            registry: Registry = None,
+            skip_registry: bool = False,
+            only_fields: T.Tuple[str, ...] = (),
+            exclude_fields: T.Tuple[str, ...] = (),
+            id=None,
+            _meta=None,
+            **options,
     ):
         assert model and issubclass(
             model, pydantic.BaseModel
@@ -127,11 +127,11 @@ class PydanticInputObjectType(graphene.InputObjectType):
         meta = cls._meta
         fields_to_update = {}
         for name, field in meta.fields.items():
-            target_type = field._type
-            if hasattr(target_type, "_of_type"):
-                target_type = target_type._of_type
+            target_type = field.type
+            while hasattr(target_type, "of_type"):
+                target_type = target_type.of_type
             if isinstance(target_type, Placeholder):
-                pydantic_field = meta.model.__fields__[name]
+                pydantic_field = meta.model.model_fields[name]
                 graphene_field = convert_pydantic_input_field(
                     pydantic_field,
                     meta.registry,

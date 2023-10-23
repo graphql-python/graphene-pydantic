@@ -37,16 +37,16 @@ def construct_fields(
     if exclude_fields:
         excluded = exclude_fields
     elif only_fields:
-        excluded = tuple(k for k in model.__fields__ if k not in only_fields)
+        excluded = tuple(k for k in model.model_fields if k not in only_fields)
 
     fields_to_convert = (
-        (k, v) for k, v in model.__fields__.items() if k not in excluded
+        (k, v) for k, v in model.model_fields.items() if k not in excluded
     )
 
     fields = {}
     for name, field in fields_to_convert:
         converted = convert_pydantic_field(
-            field, registry, parent_type=obj_type, model=model
+            name, field, registry, parent_type=obj_type, model=model
         )
         registry.register_object_field(obj_type, name, field)
         fields[name] = converted
@@ -141,12 +141,13 @@ class PydanticObjectType(graphene.ObjectType):
         meta = cls._meta
         fields_to_update = {}
         for name, field in meta.fields.items():
-            target_type = field._type
-            if hasattr(target_type, "_of_type"):
-                target_type = target_type._of_type
+            target_type = field.type
+            while hasattr(target_type, "of_type"):
+                target_type = target_type.of_type
             if isinstance(target_type, Placeholder):
-                pydantic_field = meta.model.__fields__[name]
+                pydantic_field = meta.model.model_fields[name]
                 graphene_field = convert_pydantic_field(
+                    name,
                     pydantic_field,
                     meta.registry,
                     parent_type=cls,

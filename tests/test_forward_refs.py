@@ -4,10 +4,9 @@ import uuid
 
 import graphene
 import pydantic
+import pytest
 
 from graphene_pydantic import PydanticObjectType
-
-import pytest
 
 if sys.version_info < (3, 7):
     pytest.skip("ForwardRefs feature requires Python 3.7+", allow_module_level=True)
@@ -17,8 +16,8 @@ class FooModel(pydantic.BaseModel):
     id: uuid.UUID
     name: str
     bar: "BarModel" = None
-    baz: T.Optional["BazModel"]
-    some_bars: T.Optional[T.List["BarModel"]]
+    baz: T.Optional["BazModel"] = None
+    some_bars: T.Optional[T.List["BarModel"]] = None
 
 
 class BazModel(pydantic.BaseModel):
@@ -33,7 +32,7 @@ class BarModel(pydantic.BaseModel):
 
 
 # deliberately in this order
-BazModel.update_forward_refs()
+BazModel.model_rebuild()
 
 
 class Foo(PydanticObjectType):
@@ -52,7 +51,7 @@ class Baz(PydanticObjectType):
 
 
 # yes this is deliberately after too
-FooModel.update_forward_refs()
+FooModel.model_rebuild()
 
 Foo.resolve_placeholders()
 Bar.resolve_placeholders()

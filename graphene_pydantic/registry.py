@@ -3,7 +3,7 @@ from collections import defaultdict
 from typing import Dict, Generic, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel
-from pydantic.fields import ModelField
+from pydantic.fields import FieldInfo
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from graphene_pydantic import PydanticInputObjectType  # noqa: F401
@@ -41,7 +41,7 @@ class Registry(Generic[T]):
         self._required_obj_type: ObjectType = required_obj_type
         self._registry: Dict[ModelType, Output] = {}
         self._registry_object_fields: Dict[
-            ObjectType, Dict[str, ModelField]
+            ObjectType, Dict[str, FieldInfo]
         ] = defaultdict(dict)
 
     def register(self, obj_type: ObjectType):
@@ -61,7 +61,7 @@ class Registry(Generic[T]):
         self._registry[model] = Placeholder(model)
 
     def register_object_field(
-        self, obj_type: ObjectType, field_name: str, obj_field: ModelField
+        self, obj_type: ObjectType, field_name: str, obj_field: FieldInfo
     ):
         assert_is_correct_type(obj_type, self._required_obj_type)
 
@@ -71,7 +71,7 @@ class Registry(Generic[T]):
 
     def get_object_field_for_graphene_field(
         self, obj_type: ObjectType, field_name: str
-    ) -> Optional[ModelField]:
+    ) -> Optional[FieldInfo]:
         return self._registry_object_fields.get(obj_type, {}).get(field_name)
 
 

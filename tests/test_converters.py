@@ -1,30 +1,31 @@
-import sys
 import datetime
 import decimal
 import enum
+import sys
 import typing as T
 import uuid
 
 import graphene
 import graphene.types
-import pydantic
 import pytest
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel
+from pydantic import create_model
 
 import graphene_pydantic.converters as converters
 from graphene_pydantic.converters import ConversionError, convert_pydantic_field
 from graphene_pydantic.objecttype import PydanticObjectType
-from graphene_pydantic.registry import get_global_registry, Placeholder
+from graphene_pydantic.registry import Placeholder, get_global_registry
 
 
 def _get_field_from_spec(name, type_spec_or_default):
     kwargs = {name: type_spec_or_default}
     m = create_model("model", **kwargs)
-    return m.__fields__[name]
+    return m.model_fields[name]
 
 
 def _convert_field_from_spec(name, type_spec_or_default):
     return convert_pydantic_field(
+        name,
         _get_field_from_spec(name, type_spec_or_default),
         get_global_registry(PydanticObjectType),
     )
@@ -40,7 +41,7 @@ def test_required_string():
 
 
 def test_default_values():
-    field = _convert_field_from_spec("s", "hi")
+    field = _convert_field_from_spec("s", (str, "hi"))
     assert field is not None
     assert isinstance(field, graphene.Field)
     # there's a default value, so it never null
@@ -87,6 +88,7 @@ if sys.version_info >= (3, 10):
         assert issubclass(field.type.of_type, graphene.Union)
         assert field.default_value == 3
         assert field.type.of_type.__name__.startswith("UnionOf")
+
 
     def test_literal_singleton():
         field = _convert_field_from_spec("attr", (T.Literal["literal1"], "literal1"))
@@ -163,7 +165,8 @@ def test_existing_model():
 
 def test_unresolved_placeholders():
     # no errors should be raised here -- instead a placeholder is created
-    field = _convert_field_from_spec("attr", (create_model("Model", size=int), None))
+    field = _convert_field_from_spec("attr", (create_model("Model", size=(int, ...)), None))
+    assert type(field.type.of_type) is Placeholder
     assert any(
         isinstance(x, Placeholder)
         for x in get_global_registry(PydanticObjectType)._registry.values()
@@ -177,7 +180,7 @@ def test_self_referencing():
         # nodes: Union['NodeModel', None]
         nodes: T.Optional["NodeModel"]
 
-    NodeModel.update_forward_refs()
+    NodeModel.model_rebuild()
 
     class NodeModelSchema(PydanticObjectType):
         class Meta:  # noqa: too-few-public-methods
