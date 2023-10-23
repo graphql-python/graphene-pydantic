@@ -7,6 +7,7 @@ from graphene.types.utils import yank_fields_from_attrs
 from graphql import GraphQLResolveInfo
 
 from .converters import convert_pydantic_field
+from .inputobjecttype import PydanticInputObjectType
 from .registry import Placeholder, Registry, get_global_registry
 
 
@@ -158,4 +159,6 @@ class PydanticObjectType(graphene.ObjectType):
 
     @classmethod
     def is_type_of(cls, root, _: GraphQLResolveInfo) -> bool:
-        return root.__annotations__ == cls._meta.model.__annotations__
+        if isinstance(root, PydanticInputObjectType):
+            return type(root._meta.model) is type(cls._meta.model)
+        return isinstance(root, cls._meta.model)
