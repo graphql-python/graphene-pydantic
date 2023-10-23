@@ -23,7 +23,7 @@ from graphene import (
     JSONString,
     ID
 )
-
+import graphene
 from graphene.types.base import BaseType
 from graphene.types.datetime import Date, DateTime, Time
 from pydantic import BaseModel
@@ -34,6 +34,8 @@ from .registry import Registry
 from .util import construct_union_class_name
 
 from pydantic import fields
+
+GRAPHENE2 = graphene.VERSION[0] < 3
 
 SHAPE_SINGLETON = (fields.SHAPE_SINGLETON,)
 SHAPE_SEQUENTIAL = (
@@ -51,6 +53,7 @@ if hasattr(fields, "SHAPE_DICT"):
 else:
     SHAPE_MAPPING = T.cast(T.Tuple, (fields.SHAPE_MAPPING,))
 
+
 try:
     from graphene.types.decimal import Decimal as GrapheneDecimal
 
@@ -58,6 +61,7 @@ try:
 except ImportError:  # pragma: no cover
     # graphene 2.1.5+ is required for Decimals
     DECIMAL_SUPPORTED = False
+
 
 NONE_TYPE = None.__class__  # need to do this because mypy complains about type(None)
 
@@ -79,11 +83,11 @@ def get_attr_resolver(attr_name: str) -> T.Callable:
 
 
 def convert_pydantic_input_field(
-        field: ModelField,
-        registry: Registry,
-        parent_type: T.Type = None,
-        model: T.Type[BaseModel] = None,
-        **field_kwargs,
+    field: ModelField,
+    registry: Registry,
+    parent_type: T.Type = None,
+    model: T.Type[BaseModel] = None,
+    **field_kwargs,
 ) -> InputField:
     """
     Convert a Pydantic model field into a Graphene type field that we can add
@@ -91,7 +95,7 @@ def convert_pydantic_input_field(
     """
     declared_type = getattr(field, "type_", None)
     field_kwargs.setdefault(
-        "type_",
+        "type" if GRAPHENE2 else "type_",
         convert_pydantic_type(
             declared_type, field, registry, parent_type=parent_type, model=model
         ),
@@ -108,11 +112,11 @@ def convert_pydantic_input_field(
 
 
 def convert_pydantic_field(
-        field: ModelField,
-        registry: Registry,
-        parent_type: T.Type = None,
-        model: T.Type[BaseModel] = None,
-        **field_kwargs,
+    field: ModelField,
+    registry: Registry,
+    parent_type: T.Type = None,
+    model: T.Type[BaseModel] = None,
+    **field_kwargs,
 ) -> Field:
     """
     Convert a Pydantic model field into a Graphene type field that we can add
@@ -120,13 +124,15 @@ def convert_pydantic_field(
     """
     declared_type = getattr(field, "type_", None)
     field_kwargs.setdefault(
-        "type",
+        "type" if GRAPHENE2 else "type_",
         convert_pydantic_type(
             declared_type, field, registry, parent_type=parent_type, model=model
         ),
     )
-    field_kwargs.setdefault("required", field.required)
+    field_kwargs.setdefault("required", not field.allow_none)
     field_kwargs.setdefault("default_value", field.default)
+    if field.has_alias:
+        field_kwargs.setdefault("name", field.alias)
     # TODO: find a better way to get a field's description. Some ideas include:
     # - hunt down the description from the field's schema, or the schema
     #   from the field's base model
@@ -138,15 +144,21 @@ def convert_pydantic_field(
     if field_type is None:
         raise ValueError("No field type could be determined.")
 
-    return Field(field_type, resolver=get_attr_resolver(field.name), **field_kwargs)
+    resolver_function = getattr(parent_type, "resolve_" + field.name, None)
+    if resolver_function and callable(resolver_function):
+        field_resolver = resolver_function
+    else:
+        field_resolver = get_attr_resolver(field.name)
+
+    return Field(field_type, resolver=field_resolver, **field_kwargs)
 
 
 def convert_pydantic_type(
-        type_: T.Type,
-        field: ModelField,
-        registry: Registry,
-        parent_type: T.Type = None,
-        model: T.Type[BaseModel] = None,
+    type_: T.Type,
+    field: ModelField,
+    registry: Registry,
+    parent_type: T.Type = None,
+    model: T.Type[BaseModel] = None,
 ) -> BaseType:  # noqa: C901
     """
     Convert a Pydantic type to a Graphene Field type, including not just the
@@ -166,11 +178,11 @@ def convert_pydantic_type(
 
 
 def find_graphene_type(
-        type_: T.Type,
-        field: ModelField,
-        registry: Registry,
-        parent_type: T.Type = None,
-        model: T.Type[BaseModel] = None,
+    type_: T.Type,
+    field: ModelField,
+    registry: Registry,
+    parent_type: T.Type = None,
+    model: T.Type[BaseModel] = None,
 ) -> BaseType:  # noqa: C901
     """
     Map a native Python type to a Graphene-supported Field type, where possible,
@@ -204,8 +216,8 @@ def find_graphene_type(
     elif registry and registry.get_type_for_model(type_):
         return registry.get_type_for_model(type_)
     elif registry and (
-            isinstance(type_, BaseModel)
-            or (inspect.isclass(type_) and issubclass(type_, BaseModel))
+        isinstance(type_, BaseModel)
+        or (inspect.isclass(type_) and issubclass(type_, BaseModel))
     ):
         # If it's a Pydantic model that hasn't yet been wrapped with a ObjectType,
         # we can put a placeholder in and request that `resolve_placeholders()`
@@ -240,8 +252,24 @@ def find_graphene_type(
         )
     elif issubclass(type_, enum.Enum):
         return Enum.from_enum(type_)
-    elif issubclass(type_, str):
+    elif issubclass(type_, (str, bytes)):
         return String
+    elif issubclass(type_, datetime.datetime):
+        return DateTime
+    elif issubclass(type_, datetime.date):
+        return Date
+    elif issubclass(type_, datetime.time):
+        return Time
+    elif issubclass(type_, bool):
+        return Boolean
+    elif issubclass(type_, float):
+        return Float
+    elif issubclass(type_, decimal.Decimal):
+        return GrapheneDecimal if DECIMAL_SUPPORTED else Float
+    elif issubclass(type_, int):
+        return Int
+    elif issubclass(type_, (tuple, list, set)):
+        return List
     else:
         raise ConversionError(
             f"Don't know how to convert the Pydantic field {field!r} ({field.type_})"
@@ -249,11 +277,11 @@ def find_graphene_type(
 
 
 def convert_generic_python_type(
-        type_: T.Type,
-        field: ModelField,
-        registry: Registry,
-        parent_type: T.Type = None,
-        model: T.Type[BaseModel] = None,
+    type_: T.Type,
+    field: ModelField,
+    registry: Registry,
+    parent_type: T.Type = None,
+    model: T.Type[BaseModel] = None,
 ) -> BaseType:  # noqa: C901
     """
     Convert annotated Python generic types into the most appropriate Graphene
@@ -274,19 +302,15 @@ def convert_generic_python_type(
         return convert_literal_type(
             type_, field, registry, parent_type=parent_type, model=model
         )
-    elif (
-            origin
-            in (
-                    T.Tuple,
-                    T.List,
-                    T.Set,
-                    T.Collection,
-                    T.Iterable,
-                    list,
-                    set,
-            )
-            or issubclass(origin, collections.abc.Sequence)
-    ):
+    elif origin in (
+        T.Tuple,
+        T.List,
+        T.Set,
+        T.Collection,
+        T.Iterable,
+        list,
+        set,
+    ) or issubclass(origin, collections.abc.Sequence):
         # TODO: find a better way of divining that the origin is sequence-like
         inner_types = getattr(type_, "__args__", [])
         if not inner_types:  # pragma: no cover  # this really should be impossible
@@ -302,7 +326,7 @@ def convert_generic_python_type(
             )
         )
     elif origin in (T.Dict, T.Mapping, collections.OrderedDict, dict) or issubclass(
-            origin, collections.abc.Mapping
+        origin, collections.abc.Mapping
     ):
         raise ConversionError("Don't know how to handle mappings in Graphene")
     else:
@@ -310,11 +334,11 @@ def convert_generic_python_type(
 
 
 def convert_union_type(
-        type_: T.Type,
-        field: ModelField,
-        registry: Registry,
-        parent_type: T.Type = None,
-        model: T.Type[BaseModel] = None,
+    type_: T.Type,
+    field: ModelField,
+    registry: Registry,
+    parent_type: T.Type = None,
+    model: T.Type[BaseModel] = None,
 ):
     """
     Convert an annotated Python Union type into a Graphene Union.
@@ -343,11 +367,11 @@ def convert_union_type(
 
 
 def convert_literal_type(
-        type_: T.Type,
-        field: ModelField,
-        registry: Registry,
-        parent_type: T.Type = None,
-        model: T.Type[BaseModel] = None,
+    type_: T.Type,
+    field: ModelField,
+    registry: Registry,
+    parent_type: T.Type = None,
+    model: T.Type[BaseModel] = None,
 ):
     """
     Convert an annotated Python Literal type into a Graphene Scalar or Union of Scalars.
