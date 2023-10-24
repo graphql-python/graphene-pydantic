@@ -68,7 +68,7 @@ def convert_pydantic_input_field(
         ),
     )
     field_kwargs.setdefault("required", field.is_required())
-    field_kwargs.setdefault("default_value", None if type(field.default) is PydanticUndefined else field.default)
+    field_kwargs.setdefault("default_value", None if field.default is PydanticUndefined else field.default)
     # TODO: find a better way to get a field's description. Some ideas include:
     # - hunt down the description from the field's schema, or the schema
     #   from the field's base model
@@ -104,7 +104,7 @@ def convert_pydantic_field(
                 getattr(declared_type, '_name', '') != 'Optional'
         )
     )
-    field_kwargs.setdefault("default_value", None if type(field.default) is PydanticUndefined else field.default)
+    field_kwargs.setdefault("default_value", None if field.default is PydanticUndefined else field.default)
     if field.alias:
         field_kwargs.setdefault("name", field.alias)
     # TODO: find a better way to get a field's description. Some ideas include:
