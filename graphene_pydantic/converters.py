@@ -143,10 +143,6 @@ def convert_pydantic_type(
         type_, field, registry, parent_type=parent_type, model=model
     )
     field_type = getattr(field.annotation, '__origin__', None)
-
-    # TODO: _should_ Sets remain here?
-    if field_type in [list, set, tuple]:  # SHAPE_SEQUENTIAL
-        return List(graphene_type)
     if field_type == map:  # SHAPE_MAPPING
         raise ConversionError("Don't know how to handle mappings in Graphene.")
 
