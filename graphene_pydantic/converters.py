@@ -247,7 +247,7 @@ def find_graphene_type(
         return List
     else:
         raise ConversionError(
-            f"Don't know how to convert the Pydantic field {field!r} ({field.type_})"
+            f"Don't know how to convert the Pydantic field {field!r} ({field.annotation})"
         )
 
 
