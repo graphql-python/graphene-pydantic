@@ -7,6 +7,7 @@ import inspect
 import sys
 import typing as T
 import uuid
+from types import UnionType
 
 import graphene
 from bson import ObjectId
@@ -91,6 +92,8 @@ def convert_pydantic_field(
     to the generated Graphene data model type.
     """
     declared_type = getattr(field, "annotation", None)
+    if isinstance(declared_type, UnionType):
+        declared_type = T.Union[declared_type.__args__]
     field_kwargs.setdefault(
         "type" if GRAPHENE2 else "type_",
         convert_pydantic_type(

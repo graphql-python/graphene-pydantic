@@ -1,4 +1,5 @@
 import typing as T
+from types import UnionType
 
 import graphene
 import pydantic
@@ -44,6 +45,14 @@ def construct_fields(
 
     fields = {}
     for name, field in fields_to_convert:
+        declared_type = getattr(field, "annotation", None)
+
+        # Ignore Union types from Input. Refer https://github.com/graphql/graphql-spec/issues/488
+        if isinstance(declared_type, UnionType) or (
+                hasattr(declared_type, "__origin__") and declared_type.__origin__ == T.Union
+        ):
+            continue
+
         converted = convert_pydantic_input_field(
             field, registry, parent_type=obj_type, model=model
         )
