@@ -46,8 +46,14 @@ def construct_fields(
     fields = {}
     for name, field in fields_to_convert:
 
+        # Graphql does not accept union as input. Refer https://github.com/graphql/graphql-spec/issues/488
         if isinstance(getattr(field, "annotation", None), UnionType):
-            field.annotation = T.Union[getattr(field, "annotation", None).__args__]
+            union_types = field.annotation.__args__
+            if type(None) not in union_types or len(union_types) > 2:
+                continue
+            # But str|None or Union[str, None] is valid input equivalent to Optional[str]
+            base_type = list(filter(lambda x: x is not type(None), union_types)).pop()
+            field.annotation = T.Optional[base_type]
 
         converted = convert_pydantic_input_field(
             field, registry, parent_type=obj_type, model=model
