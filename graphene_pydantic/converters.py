@@ -10,7 +10,6 @@ import uuid
 from types import UnionType
 
 import graphene
-from bson import ObjectId
 from graphene import (Boolean, Enum, Field, Float, ID, InputField, Int, JSONString, List, String, UUID, Union)
 from graphene.types.base import BaseType
 from graphene.types.datetime import Date, DateTime, Time
@@ -22,6 +21,12 @@ from .registry import Registry
 from .util import construct_union_class_name
 
 GRAPHENE2 = graphene.VERSION[0] < 3
+
+try:
+    from bson import ObjectId
+    BSON_OBJECT_ID_SUPPORTED = True
+except ImportError:
+    BSON_OBJECT_ID_SUPPORTED = False
 
 try:
     from graphene.types.decimal import Decimal as GrapheneDecimal
@@ -177,7 +182,7 @@ def find_graphene_type(
         return Boolean
     elif type_ == float:
         return Float
-    elif type_ == ObjectId:
+    elif BSON_OBJECT_ID_SUPPORTED and type_ == ObjectId:
         return ID
     elif type_ == dict:
         return JSONString
