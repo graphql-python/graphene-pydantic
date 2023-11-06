@@ -20,11 +20,11 @@ class PydanticObjectTypeOptions(ObjectTypeOptions):
 
 
 def construct_fields(
-        obj_type: T.Type["PydanticObjectType"],
-        model: T.Type[pydantic.BaseModel],
-        registry: Registry,
-        only_fields: T.Tuple[str, ...],
-        exclude_fields: T.Tuple[str, ...],
+    obj_type: T.Type["PydanticObjectType"],
+    model: T.Type[pydantic.BaseModel],
+    registry: Registry,
+    only_fields: T.Tuple[str, ...],
+    exclude_fields: T.Tuple[str, ...],
 ) -> T.Dict[str, graphene.Field]:
     """
     Construct all the fields for a PydanticObjectType.
@@ -61,16 +61,16 @@ class PydanticObjectType(graphene.ObjectType):
 
     @classmethod
     def __init_subclass_with_meta__(
-            cls,
-            model: type = None,
-            registry: Registry = None,
-            skip_registry: bool = False,
-            only_fields: T.Tuple[str, ...] = (),
-            exclude_fields: T.Tuple[str, ...] = (),
-            interfaces=(),
-            id=None,
-            _meta=None,
-            **options,
+        cls,
+        model: type = None,
+        registry: Registry = None,
+        skip_registry: bool = False,
+        only_fields: T.Tuple[str, ...] = (),
+        exclude_fields: T.Tuple[str, ...] = (),
+        interfaces=(),
+        id=None,
+        _meta=None,
+        **options,
     ):
         assert model and issubclass(
             model, pydantic.BaseModel

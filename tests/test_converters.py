@@ -89,7 +89,6 @@ if sys.version_info >= (3, 10):
         assert field.default_value == 3
         assert field.type.of_type.__name__.startswith("UnionOf")
 
-
     def test_literal_singleton():
         field = _convert_field_from_spec("attr", (T.Literal["literal1"], "literal1"))
         assert issubclass(field.type.of_type, graphene.String)
@@ -165,7 +164,9 @@ def test_existing_model():
 
 def test_unresolved_placeholders():
     # no errors should be raised here -- instead a placeholder is created
-    field = _convert_field_from_spec("attr", (create_model("Model", size=(int, ...)), None))
+    field = _convert_field_from_spec(
+        "attr", (create_model("Model", size=(int, ...)), None)
+    )
     assert type(field.type.of_type) is Placeholder
     assert any(
         isinstance(x, Placeholder)

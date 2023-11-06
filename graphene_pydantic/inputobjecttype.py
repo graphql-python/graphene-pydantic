@@ -20,11 +20,11 @@ class PydanticInputObjectTypeOptions(InputObjectTypeOptions):
 
 
 def construct_fields(
-        obj_type: T.Type["PydanticInputObjectType"],
-        model: T.Type[pydantic.BaseModel],
-        registry: Registry,
-        only_fields: T.Tuple[str, ...],
-        exclude_fields: T.Tuple[str, ...],
+    obj_type: T.Type["PydanticInputObjectType"],
+    model: T.Type[pydantic.BaseModel],
+    registry: Registry,
+    only_fields: T.Tuple[str, ...],
+    exclude_fields: T.Tuple[str, ...],
 ) -> T.Dict[str, InputField]:
     """
     Construct all the fields for a PydanticInputObjectType.
@@ -45,7 +45,6 @@ def construct_fields(
 
     fields = {}
     for name, field in fields_to_convert:
-
         # Graphql does not accept union as input. Refer https://github.com/graphql/graphql-spec/issues/488
         if isinstance(getattr(field, "annotation", None), UnionType):
             union_types = field.annotation.__args__
@@ -71,15 +70,15 @@ class PydanticInputObjectType(graphene.InputObjectType):
 
     @classmethod
     def __init_subclass_with_meta__(
-            cls,
-            model: type = None,
-            registry: Registry = None,
-            skip_registry: bool = False,
-            only_fields: T.Tuple[str, ...] = (),
-            exclude_fields: T.Tuple[str, ...] = (),
-            id=None,
-            _meta=None,
-            **options,
+        cls,
+        model: type = None,
+        registry: Registry = None,
+        skip_registry: bool = False,
+        only_fields: T.Tuple[str, ...] = (),
+        exclude_fields: T.Tuple[str, ...] = (),
+        id=None,
+        _meta=None,
+        **options,
     ):
         assert model and issubclass(
             model, pydantic.BaseModel

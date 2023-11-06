@@ -10,7 +10,20 @@ import uuid
 from types import UnionType
 
 import graphene
-from graphene import (Boolean, Enum, Field, Float, ID, InputField, Int, JSONString, List, String, UUID, Union)
+from graphene import (
+    Boolean,
+    Enum,
+    Field,
+    Float,
+    ID,
+    InputField,
+    Int,
+    JSONString,
+    List,
+    String,
+    UUID,
+    Union,
+)
 from graphene.types.base import BaseType
 from graphene.types.datetime import Date, DateTime, Time
 from pydantic import BaseModel
@@ -24,6 +37,7 @@ GRAPHENE2 = graphene.VERSION[0] < 3
 
 try:
     from bson import ObjectId
+
     BSON_OBJECT_ID_SUPPORTED = True
 except ImportError:
     BSON_OBJECT_ID_SUPPORTED = False
@@ -74,7 +88,9 @@ def convert_pydantic_input_field(
         ),
     )
     field_kwargs.setdefault("required", field.is_required())
-    field_kwargs.setdefault("default_value", None if field.default is PydanticUndefined else field.default)
+    field_kwargs.setdefault(
+        "default_value", None if field.default is PydanticUndefined else field.default
+    )
     # TODO: find a better way to get a field's description. Some ideas include:
     # - hunt down the description from the field's schema, or the schema
     #   from the field's base model
@@ -292,13 +308,13 @@ def convert_generic_python_type(
             type_, field, registry, parent_type=parent_type, model=model
         )
     elif origin in (
-            T.Tuple,
-            T.List,
-            T.Set,
-            T.Collection,
-            T.Iterable,
-            list,
-            set,
+        T.Tuple,
+        T.List,
+        T.Set,
+        T.Collection,
+        T.Iterable,
+        list,
+        set,
     ) or issubclass(origin, collections.abc.Sequence):
         # TODO: find a better way of divining that the origin is sequence-like
         inner_types = getattr(type_, "__args__", [])
@@ -315,7 +331,7 @@ def convert_generic_python_type(
             )
         )
     elif origin in (T.Dict, T.Mapping, collections.OrderedDict, dict) or issubclass(
-            origin, collections.abc.Mapping
+        origin, collections.abc.Mapping
     ):
         raise ConversionError("Don't know how to handle mappings in Graphene.")
     else:
