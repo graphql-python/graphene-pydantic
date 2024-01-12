@@ -8,6 +8,7 @@ import sys
 import typing as T
 import uuid
 from types import UnionType
+from typing import get_origin
 
 import graphene
 from graphene import (
@@ -113,9 +114,14 @@ def convert_pydantic_field(
     to the generated Graphene data model type.
     """
     declared_type = getattr(field, "annotation", None)
+
     # Convert Python 11 UnionType to T.Union
-    if isinstance(declared_type, UnionType):
+    is_union_type = (
+        get_origin(declared_type) is T.Union or get_origin(declared_type) is UnionType
+    )
+    if is_union_type:
         declared_type = T.Union[declared_type.__args__]
+
     field_kwargs.setdefault(
         "type" if GRAPHENE2 else "type_",
         convert_pydantic_type(
@@ -128,6 +134,7 @@ def convert_pydantic_field(
         or (
             type(field.default) is not PydanticUndefined
             and getattr(declared_type, "_name", "") != "Optional"
+            and not is_union_type
         ),
     )
     field_kwargs.setdefault(
