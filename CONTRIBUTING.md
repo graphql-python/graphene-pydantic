@@ -31,3 +31,13 @@ To run the tests locally, you can simply run `pytest`.
 In CI, we run tests using [nox](https://nox.thea.codes/en/stable/index.html),
 which runs the test multiple times using different package versions. Run
 `poetry run nox` to run the entire test suite.
+
+### Pre-commit, linting
+
+We use [pre-commit](https://pre-commit.com/) to manage git pre-commit hooks. This
+will fail linting locally so you can see errors before they run in CI. Run `pre-commit install`
+to install the hooks.
+
+To run them manually, run `pre-commit run --all-files`.
+
+To skip them when committing, run `git commit` with the `--no-verify` flag.
