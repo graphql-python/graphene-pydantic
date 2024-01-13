@@ -169,7 +169,7 @@ This project depends on third-party code which is subject to the licenses set fo
 
 ### Contributing
 
-Please see the [Contributing Guide](./CONTRIBUTING.md). Note that you must sign the [CLA](./CONTRIBUTOR_LICENSE_AGREEMENT.md).
+Please see the [Contributing Guide](./CONTRIBUTING.md).
 
 ### Caveats
 
