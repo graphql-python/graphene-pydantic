@@ -23,7 +23,7 @@ classifiers = [
 keywords = ["api", "graphql", "protocol", "rest", "relay", "graphene", "pydantic", "model"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 graphene = ">=2.1.8"
 pydantic = ">=2.0"
 

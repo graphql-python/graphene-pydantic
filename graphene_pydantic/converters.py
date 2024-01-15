@@ -24,12 +24,13 @@ from graphene import (
     UUID,
     Union,
 )
+from graphene.types.base import BaseType
 from graphene.types.datetime import Date, DateTime, Time
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
-from .registry import Registry
+from .registry import Placeholder, Registry
 from .util import construct_union_class_name, evaluate_forward_ref
 
 PYTHON10 = sys.version_info >= (3, 10)
@@ -175,7 +176,7 @@ def convert_pydantic_type(
     registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
-) -> Type:  # noqa: C901
+) -> T.Union[Type[T.Union[BaseType, List]], Placeholder]:  # noqa: C901
     """
     Convert a Pydantic type to a Graphene Field type, including not just the
     native Python type but any additional metadata (e.g. shape) that Pydantic
@@ -197,7 +198,7 @@ def find_graphene_type(
     registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
-) -> Type:  # noqa: C901
+) -> T.Union[Type[T.Union[BaseType, List]], Placeholder]:  # noqa: C901
     """
     Map a native Python type to a Graphene-supported Field type, where possible,
     throwing an error if we don't know what to map it to.
@@ -303,10 +304,10 @@ def convert_generic_python_type(
     registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
-) -> Type:  # noqa: C901
+) -> T.Union[Type[T.Union[BaseType, List]], Placeholder]:  # noqa: C901
     """
     Convert annotated Python generic types into the most appropriate Graphene
-    Field type -- e.g. turn `typing.Union` into a Graphene Union.
+    Field type -- e.g., turn `typing.Union` into a Graphene Union.
     """
     origin = type_.__origin__
     if not origin:  # pragma: no cover  # this really should be impossible
@@ -393,7 +394,7 @@ def convert_literal_type(
     registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
-):
+) -> T.Union[Type[T.Union[BaseType, List]], Placeholder]:
     """
     Convert an annotated Python Literal type into a Graphene Scalar or Union of Scalars.
     """

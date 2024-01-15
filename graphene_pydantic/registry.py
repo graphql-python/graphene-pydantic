@@ -2,6 +2,7 @@ import typing
 from collections import defaultdict
 from typing import Dict, Generic, Optional, Type, TypeVar, Union
 
+from graphene.types.base import BaseType
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
@@ -39,7 +40,7 @@ class Registry(Generic[T]):
 
     def __init__(self, required_obj_type: ObjectType):
         self._required_obj_type: ObjectType = required_obj_type
-        self._registry: Dict[ModelType, Output] = {}
+        self._registry: Dict[ModelType, Union[Type[BaseType], Placeholder]] = {}
         self._registry_object_fields: Dict[
             ObjectType, Dict[str, FieldInfo]
         ] = defaultdict(dict)
@@ -52,7 +53,9 @@ class Registry(Generic[T]):
         ), "Can't register models linked to another Registry"
         self._registry[obj_type._meta.model] = obj_type
 
-    def get_type_for_model(self, model: ModelType) -> Optional[Output]:
+    def get_type_for_model(
+        self, model: ModelType
+    ) -> Union[Type[BaseType], Placeholder]:
         return self._registry.get(model)
 
     def add_placeholder_for_model(self, model: ModelType):
