@@ -8,7 +8,7 @@ import sys
 import typing as T
 import uuid
 from types import UnionType
-from typing import get_origin
+from typing import Type, get_origin
 
 import graphene
 from graphene import (
@@ -25,14 +25,13 @@ from graphene import (
     UUID,
     Union,
 )
-from graphene.types.base import BaseType
 from graphene.types.datetime import Date, DateTime, Time
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
 from .registry import Registry
-from .util import construct_union_class_name
+from .util import construct_union_class_name, evaluate_forward_ref
 
 GRAPHENE2 = graphene.VERSION[0] < 3
 
@@ -168,7 +167,7 @@ def convert_pydantic_type(
     registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
-) -> BaseType:  # noqa: C901
+) -> Type:  # noqa: C901
     """
     Convert a Pydantic type to a Graphene Field type, including not just the
     native Python type but any additional metadata (e.g. shape) that Pydantic
@@ -190,7 +189,7 @@ def find_graphene_type(
     registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
-) -> BaseType:  # noqa: C901
+) -> Type:  # noqa: C901
     """
     Map a native Python type to a Graphene-supported Field type, where possible,
     throwing an error if we don't know what to map it to.
@@ -254,8 +253,9 @@ def find_graphene_type(
                 "the forward reference. Did you call `resolve_placeholders()`? "
                 "See the README for more on forward references."
             )
+
         module_ns = sys.modules[sibling.__module__].__dict__
-        resolved = T.cast(T.Any, type_)._evaluate(type_, module_ns, None)
+        resolved = evaluate_forward_ref(type_, module_ns, None)
         # TODO: make this behavior optional. maybe this is a place for the TypeOptions to play a role?
         if registry:
             registry.add_placeholder_for_model(resolved)
@@ -294,7 +294,7 @@ def convert_generic_python_type(
     registry: Registry,
     parent_type: T.Type = None,
     model: T.Type[BaseModel] = None,
-) -> BaseType:  # noqa: C901
+) -> Type:  # noqa: C901
     """
     Convert annotated Python generic types into the most appropriate Graphene
     Field type -- e.g. turn `typing.Union` into a Graphene Union.
