@@ -4,7 +4,6 @@ import graphene
 import pydantic
 from graphene.types.objecttype import ObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
-from graphql import GraphQLResolveInfo
 
 from .converters import convert_pydantic_field
 from .inputobjecttype import PydanticInputObjectType
@@ -72,8 +71,8 @@ class PydanticObjectType(graphene.ObjectType):
         _meta=None,
         **options,
     ):
-        assert model and issubclass(
-            model, pydantic.BaseModel
+        assert (
+            model and issubclass(model, pydantic.BaseModel)
         ), f'You need to pass a valid Pydantic model in {cls.__name__}.Meta, received "{model}"'
 
         assert isinstance(
@@ -159,7 +158,7 @@ class PydanticObjectType(graphene.ObjectType):
         meta.fields.update(fields_to_update)
 
     @classmethod
-    def is_type_of(cls, root, _: GraphQLResolveInfo) -> bool:
+    def is_type_of(cls, root, info) -> bool:
         if isinstance(root, PydanticInputObjectType):
-            return type(root._meta.model) is type(cls._meta.model)
+            return type(root._meta.model) is type(cls._meta.model)  # noqa: E721
         return isinstance(root, cls._meta.model)

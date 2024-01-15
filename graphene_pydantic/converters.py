@@ -7,7 +7,6 @@ import inspect
 import sys
 import typing as T
 import uuid
-from types import UnionType
 from typing import Type, get_origin
 
 import graphene
@@ -32,6 +31,10 @@ from pydantic_core import PydanticUndefined
 
 from .registry import Registry
 from .util import construct_union_class_name, evaluate_forward_ref
+
+PYTHON10 = sys.version_info >= (3, 10)
+if PYTHON10:
+    from types import UnionType
 
 GRAPHENE2 = graphene.VERSION[0] < 3
 
@@ -114,10 +117,15 @@ def convert_pydantic_field(
     """
     declared_type = getattr(field, "annotation", None)
 
-    # Convert Python 11 UnionType to T.Union
-    is_union_type = (
-        get_origin(declared_type) is T.Union or get_origin(declared_type) is UnionType
-    )
+    # Convert Python 10 UnionType to T.Union
+    if PYTHON10:
+        is_union_type = (
+            get_origin(declared_type) is T.Union
+            or get_origin(declared_type) is UnionType
+        )
+    else:
+        is_union_type = get_origin(declared_type) is T.Union
+
     if is_union_type:
         declared_type = T.Union[declared_type.__args__]
 
@@ -195,9 +203,10 @@ def find_graphene_type(
     throwing an error if we don't know what to map it to.
     """
 
-    # Convert Python 11 UnionType to T.Union
-    if isinstance(type_, UnionType):
-        type_ = T.Union[type_.__args__]
+    # Convert Python 10 UnionType to T.Union
+    if PYTHON10:
+        if isinstance(type_, UnionType):
+            type_ = T.Union[type_.__args__]
 
     if type_ == uuid.UUID:
         return UUID

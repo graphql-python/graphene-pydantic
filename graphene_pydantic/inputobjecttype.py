@@ -1,5 +1,4 @@
 import typing as T
-from types import UnionType
 
 import graphene
 import pydantic
@@ -46,7 +45,8 @@ def construct_fields(
     fields = {}
     for name, field in fields_to_convert:
         # Graphql does not accept union as input. Refer https://github.com/graphql/graphql-spec/issues/488
-        if isinstance(getattr(field, "annotation", None), UnionType):
+        annotation = getattr(field, "annotation", None)
+        if isinstance(annotation, str) or isinstance(annotation, int):
             union_types = field.annotation.__args__
             if type(None) not in union_types or len(union_types) > 2:
                 continue
@@ -80,8 +80,8 @@ class PydanticInputObjectType(graphene.InputObjectType):
         _meta=None,
         **options,
     ):
-        assert model and issubclass(
-            model, pydantic.BaseModel
+        assert (
+            model and issubclass(model, pydantic.BaseModel)
         ), f'You need to pass a valid Pydantic model in {cls.__name__}.Meta, received "{model}"'
 
         assert isinstance(
