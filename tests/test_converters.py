@@ -1,30 +1,32 @@
-import sys
 import datetime
 import decimal
 import enum
+import sys
 import typing as T
 import uuid
+from typing import Optional
 
 import graphene
 import graphene.types
-import pydantic
 import pytest
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel
+from pydantic import create_model
 
 import graphene_pydantic.converters as converters
 from graphene_pydantic.converters import ConversionError, convert_pydantic_field
 from graphene_pydantic.objecttype import PydanticObjectType
-from graphene_pydantic.registry import get_global_registry, Placeholder
+from graphene_pydantic.registry import Placeholder, get_global_registry
 
 
 def _get_field_from_spec(name, type_spec_or_default):
     kwargs = {name: type_spec_or_default}
     m = create_model("model", **kwargs)
-    return m.__fields__[name]
+    return m.model_fields[name]
 
 
 def _convert_field_from_spec(name, type_spec_or_default):
     return convert_pydantic_field(
+        name,
         _get_field_from_spec(name, type_spec_or_default),
         get_global_registry(PydanticObjectType),
     )
@@ -40,7 +42,7 @@ def test_required_string():
 
 
 def test_default_values():
-    field = _convert_field_from_spec("s", "hi")
+    field = _convert_field_from_spec("s", (str, "hi"))
     assert field is not None
     assert isinstance(field, graphene.Field)
     # there's a default value, so it never null
@@ -69,10 +71,26 @@ def test_builtin_scalars(input, expected):
     assert field.default_value == input[1]
 
 
-def test_union():
+def test_union_optional():
     field = _convert_field_from_spec("attr", (T.Union[int, float, str], 5.0))
-    assert issubclass(field.type.of_type, graphene.Union)
+    assert issubclass(field.type, graphene.Union)
     assert field.default_value == 5.0
+    assert field.type.__name__.startswith("UnionOf")
+
+
+@pytest.mark.parametrize(
+    "input",
+    [
+        (T.Union[int, float, str], ...),
+        (T.Union[int, float, str, None], ...),
+        (Optional[T.Union[int, float, str]], ...),
+        (Optional[T.Union[int, float, None]], ...),
+    ],
+)
+def test_union(input):
+    field = _convert_field_from_spec("attr", input)
+    assert isinstance(field.type, graphene.NonNull)
+    assert field.default_value == None
     assert field.type.of_type.__name__.startswith("UnionOf")
 
 
@@ -93,6 +111,27 @@ if sys.version_info >= (3, 10):
         assert issubclass(field.type.of_type, graphene.String)
         assert field.default_value == "literal1"
         assert field.type.of_type == graphene.String
+
+    def test_union_pipe_optional():
+        field = _convert_field_from_spec("attr", (int | float | str, 5.0))
+        assert issubclass(field.type, graphene.Union)
+        assert field.default_value == 5.0
+        assert field.type.__name__.startswith("UnionOf")
+
+    @pytest.mark.parametrize(
+        "input",
+        [
+            (int | float | str, ...),
+            (int | float | str | None, ...),
+            (Optional[int | float | str], ...),
+            (Optional[int | float | None], ...),
+        ],
+    )
+    def test_union_pipe(input):
+        field = _convert_field_from_spec("attr", input)
+        assert isinstance(field.type, graphene.NonNull)
+        assert field.default_value == None
+        assert field.type.of_type.__name__.startswith("UnionOf")
 
 
 def test_mapping():
@@ -163,7 +202,10 @@ def test_existing_model():
 
 def test_unresolved_placeholders():
     # no errors should be raised here -- instead a placeholder is created
-    field = _convert_field_from_spec("attr", (create_model("Model", size=int), None))
+    field = _convert_field_from_spec(
+        "attr", (create_model("Model", size=(int, ...)), None)
+    )
+    assert type(field.type.of_type) is Placeholder
     assert any(
         isinstance(x, Placeholder)
         for x in get_global_registry(PydanticObjectType)._registry.values()
@@ -177,7 +219,7 @@ def test_self_referencing():
         # nodes: Union['NodeModel', None]
         nodes: T.Optional["NodeModel"]
 
-    NodeModel.update_forward_refs()
+    NodeModel.model_rebuild()
 
     class NodeModelSchema(PydanticObjectType):
         class Meta:  # noqa: too-few-public-methods

@@ -2,8 +2,9 @@ import typing
 from collections import defaultdict
 from typing import Dict, Generic, Optional, Type, TypeVar, Union
 
+from graphene.types.base import BaseType
 from pydantic import BaseModel
-from pydantic.fields import ModelField
+from pydantic.fields import FieldInfo
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from graphene_pydantic import PydanticInputObjectType  # noqa: F401
@@ -39,9 +40,9 @@ class Registry(Generic[T]):
 
     def __init__(self, required_obj_type: ObjectType):
         self._required_obj_type: ObjectType = required_obj_type
-        self._registry: Dict[ModelType, Output] = {}
+        self._registry: Dict[ModelType, Union[Type[BaseType], Placeholder]] = {}
         self._registry_object_fields: Dict[
-            ObjectType, Dict[str, ModelField]
+            ObjectType, Dict[str, FieldInfo]
         ] = defaultdict(dict)
 
     def register(self, obj_type: ObjectType):
@@ -52,7 +53,9 @@ class Registry(Generic[T]):
         ), "Can't register models linked to another Registry"
         self._registry[obj_type._meta.model] = obj_type
 
-    def get_type_for_model(self, model: ModelType) -> Optional[Output]:
+    def get_type_for_model(
+        self, model: ModelType
+    ) -> Union[Type[BaseType], Placeholder]:
         return self._registry.get(model)
 
     def add_placeholder_for_model(self, model: ModelType):
@@ -61,7 +64,7 @@ class Registry(Generic[T]):
         self._registry[model] = Placeholder(model)
 
     def register_object_field(
-        self, obj_type: ObjectType, field_name: str, obj_field: ModelField
+        self, obj_type: ObjectType, field_name: str, obj_field: FieldInfo
     ):
         assert_is_correct_type(obj_type, self._required_obj_type)
 
@@ -71,7 +74,7 @@ class Registry(Generic[T]):
 
     def get_object_field_for_graphene_field(
         self, obj_type: ObjectType, field_name: str
-    ) -> Optional[ModelField]:
+    ) -> Optional[FieldInfo]:
         return self._registry_object_fields.get(obj_type, {}).get(field_name)
 
 

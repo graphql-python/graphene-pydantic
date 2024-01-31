@@ -36,14 +36,24 @@ def construct_fields(
     if exclude_fields:
         excluded = exclude_fields
     elif only_fields:
-        excluded = tuple(k for k in model.__fields__ if k not in only_fields)
+        excluded = tuple(k for k in model.model_fields if k not in only_fields)
 
     fields_to_convert = (
-        (k, v) for k, v in model.__fields__.items() if k not in excluded
+        (k, v) for k, v in model.model_fields.items() if k not in excluded
     )
 
     fields = {}
     for name, field in fields_to_convert:
+        # Graphql does not accept union as input. Refer https://github.com/graphql/graphql-spec/issues/488
+        annotation = getattr(field, "annotation", None)
+        if isinstance(annotation, str) or isinstance(annotation, int):
+            union_types = field.annotation.__args__
+            if type(None) not in union_types or len(union_types) > 2:
+                continue
+            # But str|None or Union[str, None] is valid input equivalent to Optional[str]
+            base_type = list(filter(lambda x: x is not type(None), union_types)).pop()
+            field.annotation = T.Optional[base_type]
+
         converted = convert_pydantic_input_field(
             field, registry, parent_type=obj_type, model=model
         )
@@ -127,11 +137,11 @@ class PydanticInputObjectType(graphene.InputObjectType):
         meta = cls._meta
         fields_to_update = {}
         for name, field in meta.fields.items():
-            target_type = field._type
-            if hasattr(target_type, "_of_type"):
-                target_type = target_type._of_type
+            target_type = field.type
+            while hasattr(target_type, "of_type"):
+                target_type = target_type.of_type
             if isinstance(target_type, Placeholder):
-                pydantic_field = meta.model.__fields__[name]
+                pydantic_field = meta.model.model_fields[name]
                 graphene_field = convert_pydantic_input_field(
                     pydantic_field,
                     meta.registry,
