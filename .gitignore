@@ -75,3 +75,7 @@ dmypy.json
 
 # PyCharm / IntelliJ
 .idea/
+
+# vim
+*.swp
+*.swo
