@@ -21,8 +21,8 @@ class SalaryModel(pydantic.BaseModel):
 
 
 class EmployeeModel(PersonModel):
-    hired_on: datetime.datetime = None
-    salary: T.Optional[SalaryModel]
+    hired_on: T.Optional[datetime.datetime] = None
+    salary: T.Optional[SalaryModel] = None
 
 
 class ManagerModel(EmployeeModel):
@@ -96,13 +96,13 @@ class Query(graphene.ObjectType):
                         salary=SalaryModel(rating="GS-9", amount=75000.23),
                         hired_on=datetime.datetime(2019, 1, 1, 15, 26),
                     ),
-                    EmployeeModel(id=uuid.uuid4(), name="Derek"),
+                    EmployeeModel(id=uuid.uuid4(), name="Derek", salary=None),
                 ],
             )
         ]
 
 
-if __name__ == "__main__":
+def main():
     schema = graphene.Schema(query=Query)
     query = """
         query {
@@ -128,7 +128,10 @@ if __name__ == "__main__":
         }
     }
     """
-    result = schema.execute(query)
+    return schema.execute(query)
 
+
+if __name__ == "__main__":
+    result = main()
     print(result.errors)
     print(json.dumps(result.data, indent=2))
