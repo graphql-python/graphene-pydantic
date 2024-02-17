@@ -29,6 +29,14 @@ from graphene.types.datetime import Date, DateTime, Time
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
+from pydantic.types import (
+    PastDate,
+    FutureDate,
+    PastDatetime,
+    FutureDatetime,
+    AwareDatetime,
+    NaiveDatetime,
+)
 
 from .registry import Placeholder, Registry
 from .util import construct_union_class_name, evaluate_forward_ref
@@ -213,9 +221,9 @@ def find_graphene_type(
         return UUID
     elif type_ in (str, bytes):
         return String
-    elif type_ == datetime.datetime:
+    elif type_ in [datetime.datetime, PastDatetime, FutureDatetime, AwareDatetime, NaiveDatetime]:
         return DateTime
-    elif type_ == datetime.date:
+    elif type_ in [datetime.date, PastDate, FutureDate]:
         return Date
     elif type_ == datetime.time:
         return Time
