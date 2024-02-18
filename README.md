@@ -1,7 +1,5 @@
 # ![Graphene Logo](http://graphene-python.org/favicon.png) graphene-pydantic [![Build status](https://circleci.com/gh/upsidetravel/graphene-pydantic.svg?style=svg)](https://circleci.com/gh/upsidetravel/graphene-pydantic) [![PyPI version](https://badge.fury.io/py/graphene-pydantic.svg)](https://badge.fury.io/py/graphene-pydantic) [![Coverage Status](https://coveralls.io/repos/upsidetravel/graphene-pydantic/badge.svg?branch=master&service=github)](https://coveralls.io/github/upsidetravel/graphene-pydantic?branch=master)
 
-
-
 A [Pydantic](https://pydantic-docs.helpmanual.io/) integration for [Graphene](http://graphene-python.org/).
 
 ## Installation
@@ -127,12 +125,11 @@ class Person(PydanticObjectType):
         return self.first_name + ' ' + self.last_name
 ```
 
-
 ### Forward declarations and circular references
 
 `graphene_pydantic` supports forward declarations and circular references, but you will need to call the `resolve_placeholders()` method to ensure the types are fully updated before you execute a GraphQL query. For instance:
 
-``` python
+```python
 class NodeModel(BaseModel):
     id: int
     name: str
@@ -177,7 +174,7 @@ Please see the [Contributing Guide](./CONTRIBUTING.md).
 
 Note that even though Pydantic is perfectly happy with fields that hold mappings (e.g. dictionaries), because [GraphQL's type system doesn't have them](https://graphql.org/learn/schema/) those fields can't be exported to Graphene types. For instance, this will fail with an error `Don't know how to handle mappings in Graphene`:
 
-``` python
+```python
 import typing
 from graphene_pydantic import PydanticObjectType
 
@@ -195,7 +192,7 @@ class GraphQLPerson(PydanticObjectType):
 
 However, note that if you use `exclude_fields` or `only_fields` to exclude those values, there won't be a problem:
 
-``` python
+```python
 class GraphQLPerson(PydanticObjectType):
     class Meta:
         model = Person
@@ -248,9 +245,7 @@ class Department(PydanticObjectType):
         model = DepartmentModel
 ```
 
-Otherwise GraphQL will throw an error similar to `"[GraphQLError('Abstract type
-UnionOfManagerModelEmployeeModel must resolve to an Object type at runtime for
-field Department.employees ..."`
+Otherwise GraphQL will throw an error similar to `"[GraphQLError('Abstract type UnionOfManagerModelEmployeeModel must resolve to an Object type at runtime for field Department.employees ..."`
 
 ##### For unions between subclasses, you need to put the subclass first in the type annotation
 

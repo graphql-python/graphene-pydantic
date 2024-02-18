@@ -1,4 +1,5 @@
 [graphene](https://github.com/graphql-python/graphene)
+
 ```
 The MIT License (MIT)
 
@@ -24,6 +25,7 @@ SOFTWARE.
 ```
 
 [pydantic](https://github.com/samuelcolvin/pydantic)
+
 ```
 The MIT License (MIT)
 

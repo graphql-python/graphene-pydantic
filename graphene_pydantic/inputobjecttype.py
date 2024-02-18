@@ -80,8 +80,8 @@ class PydanticInputObjectType(graphene.InputObjectType):
         _meta=None,
         **options,
     ):
-        assert model and issubclass(
-            model, pydantic.BaseModel
+        assert (
+            model and issubclass(model, pydantic.BaseModel)
         ), f'You need to pass a valid Pydantic model in {cls.__name__}.Meta, received "{model}"'
 
         assert isinstance(

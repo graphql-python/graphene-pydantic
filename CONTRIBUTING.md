@@ -1,6 +1,7 @@
 # Contributing Guide
 
 You will need:
+
 - Python 3.7 or higher
 
 ## Getting started
