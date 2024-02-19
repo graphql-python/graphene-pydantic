@@ -221,7 +221,13 @@ def find_graphene_type(
         return UUID
     elif type_ in (str, bytes):
         return String
-    elif type_ in [datetime.datetime, PastDatetime, FutureDatetime, AwareDatetime, NaiveDatetime]:
+    elif type_ in [
+        datetime.datetime,
+        PastDatetime,
+        FutureDatetime,
+        AwareDatetime,
+        NaiveDatetime
+    ]:
         return DateTime
     elif type_ in [datetime.date, PastDate, FutureDate]:
         return Date
