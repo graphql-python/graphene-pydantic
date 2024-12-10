@@ -154,6 +154,10 @@ def test_iterables():
     field = _convert_field_from_spec("attr", (T.List[int], [1, 2]))
     assert isinstance(field.type.of_type, graphene.types.List)
 
+    if sys.version_info >= (3, 9):
+        field = _convert_field_from_spec("attr", (list[int], [1, 2]))
+        assert isinstance(field.type.of_type, graphene.types.List)
+
     field = _convert_field_from_spec("attr", (list, [1, 2]))
     assert field.type.of_type == graphene.types.List
 
