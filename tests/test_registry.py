@@ -58,3 +58,20 @@ def test_register_object_field_and_get_for_graphene_field():
     field = r.get_object_field_for_graphene_field(GraphFoo, "name")
     assert field is not None
     assert field.annotation == str
+
+
+def test_register_object_field_nested_model():
+    """https://github.com/graphql-python/graphene-pydantic/issues/104"""
+
+    class A(BaseModel):
+        x: str | None = None
+        y: list["A"] | None = None
+
+    class P_A(PydanticInputObjectType):
+        class Meta:
+            model = A
+
+    try:
+        P_A.resolve_placeholders()
+    except TypeError as e:
+        assert False, f"'10 / 5' raised an exception: {e}"
