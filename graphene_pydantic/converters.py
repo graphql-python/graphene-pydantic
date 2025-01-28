@@ -7,6 +7,7 @@ import inspect
 import sys
 import typing as T
 import uuid
+from types import GenericAlias
 from typing import Type, get_origin
 
 import graphene
@@ -238,7 +239,11 @@ def find_graphene_type(
         return registry.get_type_for_model(type_)
     elif registry and (
         isinstance(type_, BaseModel)
-        or (inspect.isclass(type_) and issubclass(type_, BaseModel))
+        or (
+            inspect.isclass(type_)
+            and not isinstance(type_, GenericAlias)
+            and issubclass(type_, BaseModel)
+        )
     ):
         # If it's a Pydantic model that hasn't yet been wrapped with a ObjectType,
         # we can put a placeholder in and request that `resolve_placeholders()`
