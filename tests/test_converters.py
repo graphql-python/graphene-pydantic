@@ -9,11 +9,15 @@ from typing import Optional
 import graphene
 import graphene.types
 import pytest
-from pydantic import BaseModel
+from pydantic import BaseModel, PositiveFloat, PositiveInt
 from pydantic import create_model
 
 import graphene_pydantic.converters as converters
-from graphene_pydantic.converters import ConversionError, convert_pydantic_field
+from graphene_pydantic.converters import (
+    ConversionError,
+    convert_pydantic_field,
+    find_graphene_type,
+)
 from graphene_pydantic.objecttype import PydanticObjectType
 from graphene_pydantic.registry import Placeholder, get_global_registry
 
@@ -210,6 +214,30 @@ def test_unresolved_placeholders():
         isinstance(x, Placeholder)
         for x in get_global_registry(PydanticObjectType)._registry.values()
     )
+
+
+def test_annotated_unwrapped_at_top_level():
+    # Pydantic strips top-level Annotated from FieldInfo.annotation, but
+    # find_graphene_type may still receive a raw Annotated[T, ...] from
+    # callers; verify it resolves to the underlying type.
+    field = _get_field_from_spec("attr", (PositiveFloat, 1.0))
+    assert find_graphene_type(PositiveFloat, field, None) is graphene.Float
+
+
+def test_annotated_inside_optional():
+    # Regression: Optional[PositiveFloat] reaches find_graphene_type as
+    # Union[Annotated[float, Gt(gt=0)], None]; the inner arm is still
+    # Annotated and previously raised ConversionError.
+    field = _get_field_from_spec("attr", (T.Optional[PositiveFloat], 1.0))
+    # Optional[T] decomposes to T in graphene_pydantic's union handling.
+    assert find_graphene_type(field.annotation, field, None) is graphene.Float
+
+
+def test_annotated_inside_list():
+    field = _get_field_from_spec("attr", (T.List[PositiveInt], [1]))
+    result = find_graphene_type(field.annotation, field, None)
+    assert isinstance(result, graphene.List)
+    assert result.of_type is graphene.Int
 
 
 def test_self_referencing():
