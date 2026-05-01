@@ -209,6 +209,13 @@ def find_graphene_type(
         if isinstance(type_, UnionType):
             type_ = T.Union[type_.__args__]
 
+    # Unwrap Annotated[T, ...] -> T. Pydantic v2 strips top-level Annotated
+    # from FieldInfo.annotation, but does NOT strip inside Union arms or
+    # generic containers, so e.g. Optional[PositiveFloat] reaches us with
+    # the inner arm still wrapped as Annotated[float, Gt(gt=0)].
+    if T.get_origin(type_) is T.Annotated:
+        type_ = T.get_args(type_)[0]
+
     if type_ == uuid.UUID:
         return UUID
     elif type_ in (str, bytes):
