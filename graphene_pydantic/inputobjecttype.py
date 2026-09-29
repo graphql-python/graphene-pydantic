@@ -149,8 +149,6 @@ class PydanticInputObjectType(graphene.InputObjectType):
                     model=target_type.model,
                 )
                 fields_to_update[name] = graphene_field
-                meta.registry.register_object_field(
-                    cls, name, pydantic_field, model=target_type.model
-                )
+                meta.registry.register_object_field(cls, name, pydantic_field)
         # update the graphene side of things
         meta.fields.update(fields_to_update)
